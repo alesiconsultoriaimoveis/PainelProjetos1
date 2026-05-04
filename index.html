@@ -3,7 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f0f13">
 <title>Painel de Projetos</title>
+
+<!-- PWA Manifest inline via JS (evita precisar de arquivo separado) -->
+<script>
+const manifestData = {
+  name: "Painel de Projetos",
+  short_name: "Projetos",
+  start_url: "./",
+  display: "standalone",
+  background_color: "#0f0f13",
+  theme_color: "#0f0f13",
+  orientation: "portrait",
+  icons: [
+    { src: "https://via.placeholder.com/192x192/0f0f13/4f8ef7?text=P", sizes: "192x192", type: "image/png" },
+    { src: "https://via.placeholder.com/512x512/0f0f13/4f8ef7?text=P", sizes: "512x512", type: "image/png" }
+  ]
+};
+const blob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+const manifestURL = URL.createObjectURL(blob);
+document.write('<link rel="manifest" href="' + manifestURL + '">');
+</script>
+
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -21,12 +46,22 @@
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+  html, body {
+    height: 100%;
+    overflow-x: hidden;
+  }
+
   body {
     font-family: 'DM Sans', sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
-    overflow-x: hidden;
+    min-height: -webkit-fill-available;
+    /* Safe area for notches/rounded corners */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 
   .topbar {
@@ -76,7 +111,6 @@
     border-color: var(--accent1);
   }
 
-  /* GRID */
   .grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -84,7 +118,6 @@
     padding: 20px 16px;
   }
 
-  /* PROJECT BOX */
   .project-box {
     background: var(--card-bg);
     border-radius: 18px;
@@ -105,7 +138,6 @@
     pointer-events: none;
   }
 
-  /* Drag states */
   .project-box.is-dragging-src {
     opacity: 0.35;
     transform: scale(0.97);
@@ -135,7 +167,6 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* DRAG HANDLE — only visible in edit mode */
   .drag-handle {
     display: none;
     position: absolute;
@@ -160,7 +191,6 @@
   }
   .project-box.editing .drag-handle { animation: wiggle 0.55s infinite alternate; }
 
-  /* PROJECT HEADER */
   .project-header {
     display: flex;
     align-items: center;
@@ -209,7 +239,6 @@
   }
   .project-box.editing .delete-project-btn { display: flex; }
 
-  /* SHORTCUTS */
   .shortcuts {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -261,7 +290,6 @@
     color: var(--muted);
   }
 
-  /* Edit: wiggle shortcut icons */
   .project-box.editing .shortcut:not(.shortcut-add) .shortcut-icon {
     animation: wiggle 0.5s infinite alternate;
   }
@@ -293,7 +321,6 @@
     grid-column: 1/-1;
   }
 
-  /* DRAG HINT BAR */
   .drag-hint {
     display: none;
     text-align: center;
@@ -304,7 +331,6 @@
   }
   body.editing-mode .drag-hint { display: block; }
 
-  /* MODAL */
   .modal-backdrop {
     display: none;
     position: fixed;
@@ -423,7 +449,6 @@
   }
   .add-project-btn:active { background: var(--surface); }
 
-  /* TOAST */
   .toast {
     position: fixed;
     bottom: 72px;
@@ -442,6 +467,38 @@
     z-index: 300;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* PWA install banner */
+  .install-banner {
+    display: none;
+    margin: 0 16px 0;
+    padding: 12px 16px;
+    border-radius: 14px;
+    background: rgba(79,142,247,0.1);
+    border: 1px solid var(--accent1);
+    align-items: center;
+    gap: 12px;
+    animation: fadeUp 0.4s ease;
+  }
+  .install-banner.show { display: flex; }
+  .install-banner span { font-size: 13px; color: var(--text); flex: 1; line-height: 1.4; }
+  .install-banner button {
+    background: var(--accent1);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .install-close {
+    background: none !important;
+    color: var(--muted) !important;
+    padding: 4px 8px !important;
+    font-size: 18px !important;
+  }
 </style>
 </head>
 <body>
@@ -450,12 +507,19 @@
   <h1>⚡ Meus Projetos</h1>
   <div class="topbar-actions">
     <button class="btn-icon" id="sortBtn" onclick="sortAlpha()" title="Ordenar A–Z">🔤</button>
-    <button class="btn-icon" id="editToggle" onclick="toggleEditMode()" title="Editar / mover">✏️</button>
+    <button class="btn-icon" id="editToggle" onclick="toggleEditMode()" title="Editar">✏️</button>
     <button class="btn-icon" onclick="showAddProject()" title="Novo projeto">＋</button>
   </div>
 </div>
 
-<div class="drag-hint">☰ Segure o ícone ⠿ e arraste para reordenar</div>
+<div class="drag-hint">☰ Segure ⠿ e arraste para reordenar</div>
+
+<!-- Banner de instalação PWA -->
+<div class="install-banner" id="installBanner">
+  <span>📲 Instale como app para abrir sem barra do navegador!</span>
+  <button onclick="installPWA()">Instalar</button>
+  <button class="install-close" onclick="dismissInstall()">✕</button>
+</div>
 
 <div class="grid" id="projectGrid"></div>
 
@@ -463,7 +527,7 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Modal: novo atalho -->
+<!-- Modal: atalho -->
 <div class="modal-backdrop" id="modalBackdrop" onclick="closeModal(event)">
   <div class="modal">
     <h3>Novo Atalho</h3>
@@ -486,7 +550,7 @@
   </div>
 </div>
 
-<!-- Modal: novo projeto -->
+<!-- Modal: projeto -->
 <div class="modal-backdrop" id="projModalBackdrop" onclick="closeProjModal(event)">
   <div class="modal">
     <h3>Novo Projeto</h3>
@@ -516,21 +580,66 @@ let projects = JSON.parse(localStorage.getItem('painelProjects') || 'null') || [
   { id:4, name:'Projeto 4', color:'#ff6b6b', shortcuts:[] },
 ];
 
-let editMode        = false;
-let currentProjId   = null;
-let selectedEmoji   = '🔗';
-let nextId          = 200;
+let editMode      = false;
+let currentProjId = null;
+let selectedEmoji = '🔗';
+let nextId        = 200;
 
-// ─── DRAG STATE ───────────────────────────────────────────
-let dragSrcId   = null;
-let floatEl     = null;
-let dragOffX    = 0, dragOffY = 0;
-let overProjId  = null;
+// ── PWA Install ──────────────────────────────────────────
+let deferredPrompt = null;
 
-// ─── PERSIST ──────────────────────────────────────────────
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (!localStorage.getItem('pwaInstallDismissed')) {
+    document.getElementById('installBanner').classList.add('show');
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').classList.remove('show');
+  toast('✅ App instalado com sucesso!');
+});
+
+async function installPWA() {
+  if (!deferredPrompt) {
+    toast('Use o menu do navegador → "Adicionar à tela inicial"');
+    return;
+  }
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.result;
+  if (outcome === 'accepted') toast('✅ Instalando...');
+  deferredPrompt = null;
+  document.getElementById('installBanner').classList.remove('show');
+}
+
+function dismissInstall() {
+  document.getElementById('installBanner').classList.remove('show');
+  localStorage.setItem('pwaInstallDismissed', '1');
+}
+
+// Register service worker for offline/PWA
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'painel-v1';
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/PainelProjetos1/'])));
+      self.skipWaiting();
+    });
+    self.addEventListener('fetch', e => {
+      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
+    });
+  `;
+  const swBlob = new Blob([swCode], { type: 'application/javascript' });
+  const swURL  = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swURL, { scope: '/PainelProjetos1/' })
+    .catch(() => {}); // silently fail if blocked
+}
+
+// ── PERSIST ──────────────────────────────────────────────
 function save() { localStorage.setItem('painelProjects', JSON.stringify(projects)); }
 
-// ─── RENDER ───────────────────────────────────────────────
+// ── RENDER ───────────────────────────────────────────────
 function renderAll() {
   const grid = document.getElementById('projectGrid');
   grid.innerHTML = '';
@@ -571,7 +680,6 @@ function renderAll() {
         </div>
       </div>`;
 
-    // Attach drag to handle
     const handle = box.querySelector('.drag-handle');
     handle.addEventListener('touchstart', dragStart, { passive: false });
     handle.addEventListener('mousedown',  dragStart);
@@ -580,18 +688,17 @@ function renderAll() {
   });
 }
 
-// ─── SORT ALPHABETICALLY ──────────────────────────────────
+// ── SORT ─────────────────────────────────────────────────
 function sortAlpha() {
   projects.sort((a, b) => a.name.localeCompare(b.name, 'pt', { sensitivity:'base' }));
-  save();
-  renderAll();
+  save(); renderAll();
   toast('Projetos ordenados de A a Z 🔤');
   const btn = document.getElementById('sortBtn');
   btn.classList.add('sort-flash');
   setTimeout(() => btn.classList.remove('sort-flash'), 1000);
 }
 
-// ─── EDIT MODE ────────────────────────────────────────────
+// ── EDIT MODE ────────────────────────────────────────────
 function toggleEditMode() {
   editMode = !editMode;
   const btn = document.getElementById('editToggle');
@@ -602,24 +709,21 @@ function toggleEditMode() {
   if (editMode) toast('Segure ⠿ e arraste para mover');
 }
 
-// ─── DRAG & DROP (touch + mouse) ─────────────────────────
+// ── DRAG & DROP ──────────────────────────────────────────
+let dragSrcId = null, floatEl = null;
+let dragOffX = 0, dragOffY = 0, overProjId = null;
+
 function dragStart(e) {
   if (!editMode) return;
-  e.preventDefault();
-  e.stopPropagation();
-
+  e.preventDefault(); e.stopPropagation();
   const handle = e.currentTarget;
   dragSrcId = parseInt(handle.dataset.pid);
-
   const srcBox = document.querySelector(`.project-box[data-id="${dragSrcId}"]`);
-  const rect   = srcBox.getBoundingClientRect();
+  const rect = srcBox.getBoundingClientRect();
   const cx = e.touches ? e.touches[0].clientX : e.clientX;
   const cy = e.touches ? e.touches[0].clientY : e.clientY;
-
   dragOffX = cx - rect.left;
   dragOffY = cy - rect.top;
-
-  // floating clone
   floatEl = srcBox.cloneNode(true);
   floatEl.classList.add('drag-floating');
   floatEl.classList.remove('editing');
@@ -628,9 +732,7 @@ function dragStart(e) {
   floatEl.style.left   = rect.left   + 'px';
   floatEl.style.top    = rect.top    + 'px';
   document.body.appendChild(floatEl);
-
   srcBox.classList.add('is-dragging-src');
-
   document.addEventListener('touchmove', dragMove, { passive: false });
   document.addEventListener('touchend',  dragEnd);
   document.addEventListener('mousemove', dragMove);
@@ -640,29 +742,20 @@ function dragStart(e) {
 function dragMove(e) {
   if (!floatEl) return;
   e.preventDefault();
-
   const cx = e.touches ? e.touches[0].clientX : e.clientX;
   const cy = e.touches ? e.touches[0].clientY : e.clientY;
-
   floatEl.style.left = (cx - dragOffX) + 'px';
   floatEl.style.top  = (cy - dragOffY) + 'px';
-
-  // detect target box
   floatEl.style.display = 'none';
   const el = document.elementFromPoint(cx, cy);
   floatEl.style.display = '';
-
   const targetBox = el ? el.closest('.project-box') : null;
   const targetId  = targetBox ? parseInt(targetBox.dataset.id) : null;
-
-  // update highlight
   document.querySelectorAll('.project-box').forEach(b => b.classList.remove('is-drag-over'));
   if (targetId && targetId !== dragSrcId) {
     targetBox.classList.add('is-drag-over');
     overProjId = targetId;
-  } else {
-    overProjId = null;
-  }
+  } else { overProjId = null; }
 }
 
 function dragEnd() {
@@ -670,12 +763,9 @@ function dragEnd() {
   document.removeEventListener('touchend',  dragEnd);
   document.removeEventListener('mousemove', dragMove);
   document.removeEventListener('mouseup',   dragEnd);
-
   if (floatEl) { floatEl.remove(); floatEl = null; }
-
   document.querySelectorAll('.project-box').forEach(b =>
     b.classList.remove('is-dragging-src', 'is-drag-over'));
-
   if (overProjId && overProjId !== dragSrcId) {
     const si = projects.findIndex(p => p.id === dragSrcId);
     const di = projects.findIndex(p => p.id === overProjId);
@@ -684,13 +774,11 @@ function dragEnd() {
       save();
     }
   }
-
-  dragSrcId = null;
-  overProjId = null;
+  dragSrcId = null; overProjId = null;
   renderAll();
 }
 
-// ─── SHORTCUTS ────────────────────────────────────────────
+// ── SHORTCUTS ────────────────────────────────────────────
 function scClick(e) { if (editMode) e.preventDefault(); }
 
 function showAddShortcut(projId) {
@@ -733,7 +821,7 @@ function deleteShortcut(e, projId, scId) {
   save(); renderAll();
 }
 
-// ─── PROJECTS ─────────────────────────────────────────────
+// ── PROJECTS ─────────────────────────────────────────────
 function showAddProject() {
   document.getElementById('projName').value = '';
   document.getElementById('projModalBackdrop').classList.add('open');
@@ -765,7 +853,7 @@ function renameProject(projId) {
   if (n && n.trim()) { proj.name = n.trim(); save(); renderAll(); }
 }
 
-// ─── TOAST ────────────────────────────────────────────────
+// ── TOAST ────────────────────────────────────────────────
 function toast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -774,7 +862,7 @@ function toast(msg) {
   el._t = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
-// ─── INIT ─────────────────────────────────────────────────
+// ── INIT ─────────────────────────────────────────────────
 renderAll();
 </script>
 </body>
