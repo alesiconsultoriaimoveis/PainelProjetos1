@@ -5,535 +5,330 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0f0f13">
+<meta name="theme-color" content="#ffffff">
 <title>Painel de Projetos</title>
-
-<!-- PWA Manifest inline via JS (evita precisar de arquivo separado) -->
-<script>
-const manifestData = {
-  name: "Painel de Projetos",
-  short_name: "Projetos",
-  start_url: "./",
-  display: "standalone",
-  background_color: "#0f0f13",
-  theme_color: "#0f0f13",
-  orientation: "portrait",
-  icons: [
-    { src: "https://via.placeholder.com/192x192/0f0f13/4f8ef7?text=P", sizes: "192x192", type: "image/png" },
-    { src: "https://via.placeholder.com/512x512/0f0f13/4f8ef7?text=P", sizes: "512x512", type: "image/png" }
-  ]
-};
-const blob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
-const manifestURL = URL.createObjectURL(blob);
-document.write('<link rel="manifest" href="' + manifestURL + '">');
-</script>
-
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0f0f13;
-    --surface: #1a1a24;
-    --border: #2a2a3a;
-    --accent1: #4f8ef7;
-    --accent2: #a259ff;
-    --accent3: #00d4aa;
-    --accent4: #ff6b6b;
-    --text: #e8e8f0;
-    --muted: #888898;
-    --card-bg: #16161f;
+    --bg:      #f4f4f6;
+    --surface: #ffffff;
+    --border:  #e2e2e8;
+    --border2: #d0d0da;
+    --text:    #1a1a2e;
+    --muted:   #888898;
+    --accent1: #3b7cf4;
+    --accent2: #8b5cf6;
+    --accent3: #059669;
+    --accent4: #ef4444;
+    --accent5: #f59e0b;
+    --shadow:  0 2px 12px rgba(0,0,0,0.07);
+    --shadow2: 0 8px 32px rgba(0,0,0,0.12);
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-  html, body {
-    height: 100%;
-    overflow-x: hidden;
-  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 
   body {
     font-family: 'DM Sans', sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
-    min-height: -webkit-fill-available;
-    /* Safe area for notches/rounded corners */
-    padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
   }
 
+  /* TOPBAR */
   .topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px 12px;
+    background: var(--surface);
     border-bottom: 1px solid var(--border);
-    background: var(--bg);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    backdrop-filter: blur(10px);
+    padding: 14px 16px 12px;
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: var(--shadow);
   }
 
   .topbar h1 {
     font-family: 'Syne', sans-serif;
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    background: linear-gradient(135deg, #fff 0%, var(--accent1) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-size: 20px; font-weight: 800;
+    color: var(--text); letter-spacing: -0.5px;
   }
+  .topbar h1 span { color: var(--accent1); }
 
   .topbar-actions { display: flex; gap: 8px; }
 
   .btn-icon {
-    width: 38px; height: 38px;
+    width: 36px; height: 36px;
     border-radius: 10px;
     border: 1px solid var(--border);
     background: var(--surface);
-    color: var(--text);
-    font-size: 15px;
+    color: var(--text); font-size: 15px;
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    transition: all 0.15s;
-    flex-shrink: 0;
+    cursor: pointer; transition: all 0.15s;
+    box-shadow: var(--shadow);
   }
-  .btn-icon:active { transform: scale(0.92); background: var(--border); }
-  .btn-icon.active {
-    background: rgba(255,107,107,0.15);
-    border-color: var(--accent4);
-  }
-  .btn-icon.sort-flash {
-    background: rgba(79,142,247,0.2);
-    border-color: var(--accent1);
-  }
+  .btn-icon:active { transform: scale(0.92); background: var(--bg); }
+  .btn-icon.active { background: #fff0f0; border-color: var(--accent4); }
 
-  .grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    padding: 20px 16px;
+  /* STATUS */
+  .status-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px; font-size: 12px; color: var(--muted);
   }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent3); animation: pulse 2s infinite;
+  }
+  .status-dot.loading { background: var(--accent5); }
+  .status-dot.error   { background: var(--accent4); animation: none; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-  .project-box {
-    background: var(--card-bg);
-    border-radius: 18px;
-    border: 1.5px solid var(--border);
-    padding: 16px;
-    position: relative;
-    overflow: visible;
-    transition: border-color 0.2s, transform 0.15s, opacity 0.2s, box-shadow 0.2s;
+  .btn-refresh {
+    margin-left: auto; font-size: 11px; color: var(--accent1);
+    background: none; border: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    padding: 4px 8px; border-radius: 6px; transition: background 0.15s;
   }
-
-  .project-box::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: var(--accent);
-    border-radius: 18px 18px 0 0;
-    pointer-events: none;
-  }
-
-  .project-box.is-dragging-src {
-    opacity: 0.35;
-    transform: scale(0.97);
-    border-color: var(--accent1);
-  }
-
-  .project-box.is-drag-over {
-    border-color: var(--accent1);
-    box-shadow: 0 0 0 2px var(--accent1);
-    transform: scale(1.03);
-  }
-
-  .project-box.drag-floating {
-    position: fixed;
-    z-index: 999;
-    opacity: 0.96;
-    box-shadow: 0 24px 60px rgba(0,0,0,0.75);
-    transform: scale(1.06) rotate(1.5deg);
-    border-color: var(--accent1);
-    pointer-events: none;
-    transition: none !important;
-    overflow: hidden;
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .drag-handle {
-    display: none;
-    position: absolute;
-    top: 10px; right: 10px;
-    width: 28px; height: 28px;
-    align-items: center; justify-content: center;
-    color: var(--muted);
-    font-size: 18px;
-    cursor: grab;
-    border-radius: 8px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    z-index: 10;
-    touch-action: none;
-    line-height: 1;
-  }
-  .project-box.editing .drag-handle { display: flex; }
-
-  @keyframes wiggle {
-    from { transform: rotate(-5deg); }
-    to   { transform: rotate(5deg); }
-  }
-  .project-box.editing .drag-handle { animation: wiggle 0.55s infinite alternate; }
-
-  .project-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 14px;
-    padding-right: 2px;
-  }
-
-  .project-name {
-    font-family: 'Syne', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--accent);
-    letter-spacing: 0.2px;
-    flex: 1;
-    cursor: pointer;
-  }
-
-  .project-header-right {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .project-count {
-    font-size: 11px;
-    color: var(--muted);
-    background: var(--surface);
-    padding: 2px 8px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-  }
-
-  .delete-project-btn {
-    display: none;
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    background: var(--accent4);
-    color: #fff;
-    font-size: 11px;
-    align-items: center; justify-content: center;
-    cursor: pointer;
-    font-weight: 700;
-    border: none;
-    flex-shrink: 0;
-  }
-  .project-box.editing .delete-project-btn { display: flex; }
-
-  .shortcuts {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-  }
-
-  .shortcut {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    cursor: pointer;
-    padding: 6px 2px;
-    border-radius: 12px;
-    transition: background 0.15s;
-    text-decoration: none;
-  }
-  .shortcut:active { background: var(--border); }
-
-  .shortcut-icon {
-    width: 46px; height: 46px;
-    border-radius: 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
-    position: relative;
-    transition: transform 0.15s, box-shadow 0.15s;
-  }
-  .shortcut:active .shortcut-icon {
-    transform: scale(0.88);
-    box-shadow: 0 0 0 2px var(--accent);
-  }
-
-  .shortcut-label {
-    font-size: 9px;
-    color: var(--muted);
-    text-align: center;
-    max-width: 50px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .shortcut-add .shortcut-icon {
-    border: 1.5px dashed var(--border);
-    background: transparent;
-    font-size: 20px;
-    color: var(--muted);
-  }
-
-  .project-box.editing .shortcut:not(.shortcut-add) .shortcut-icon {
-    animation: wiggle 0.5s infinite alternate;
-  }
-
-  .delete-btn {
-    display: none;
-    position: absolute;
-    top: -5px; right: -5px;
-    width: 17px; height: 17px;
-    background: var(--accent4);
-    border-radius: 50%;
-    font-size: 10px;
-    align-items: center; justify-content: center;
-    color: #fff;
-    font-weight: 700;
-    z-index: 10;
-    cursor: pointer;
-    border: none;
-    line-height: 1;
-  }
-  .project-box.editing .shortcut:not(.shortcut-add) .delete-btn { display: flex; }
-
-  .empty-hint {
-    font-size: 11px;
-    color: var(--muted);
-    text-align: center;
-    padding: 10px 0 4px;
-    opacity: 0.7;
-    grid-column: 1/-1;
-  }
+  .btn-refresh:active { background: var(--border); }
 
   .drag-hint {
-    display: none;
-    text-align: center;
-    font-size: 11px;
-    color: var(--muted);
-    padding: 4px 16px 0;
-    opacity: 0.75;
+    display: none; text-align: center;
+    font-size: 11px; color: var(--muted); padding: 2px 16px 4px;
   }
   body.editing-mode .drag-hint { display: block; }
 
+  /* GRID — 3 colunas */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    padding: 8px 12px 24px;
+  }
+
+  /* PROJECT BOX */
+  .project-box {
+    background: var(--surface);
+    border-radius: 16px;
+    border: 1.5px solid var(--border);
+    padding: 14px 12px 12px;
+    position: relative; overflow: visible;
+    transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+    box-shadow: var(--shadow);
+  }
+  .project-box::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--accent); border-radius: 16px 16px 0 0; pointer-events: none;
+  }
+  .project-box.is-dragging-src { opacity: 0.3; transform: scale(0.96); }
+  .project-box.is-drag-over {
+    border-color: var(--accent1);
+    box-shadow: 0 0 0 2px var(--accent1); transform: scale(1.02);
+  }
+  .project-box.drag-floating {
+    position: fixed; z-index: 999; opacity: 0.95;
+    box-shadow: var(--shadow2); transform: scale(1.05) rotate(1deg);
+    border-color: var(--accent1); pointer-events: none;
+    transition: none !important; overflow: hidden;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+  .drag-handle {
+    display: none; position: absolute; top: 8px; right: 8px;
+    width: 24px; height: 24px;
+    align-items: center; justify-content: center;
+    color: var(--muted); font-size: 16px; cursor: grab;
+    border-radius: 6px; background: var(--bg); border: 1px solid var(--border);
+    z-index: 10; touch-action: none;
+  }
+  .project-box.editing .drag-handle { display: flex; animation: wiggle 0.5s infinite alternate; }
+  @keyframes wiggle { from{transform:rotate(-5deg)} to{transform:rotate(5deg)} }
+
+  /* PROJECT HEADER */
+  .project-header { margin-bottom: 10px; }
+  .project-name {
+    font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+    color: var(--accent); line-height: 1.3; display: block; margin-bottom: 4px;
+  }
+  .project-meta { display: flex; align-items: center; justify-content: space-between; }
+  .project-count {
+    font-size: 10px; color: var(--muted);
+    background: var(--bg); padding: 2px 6px;
+    border-radius: 20px; border: 1px solid var(--border);
+  }
+  .delete-project-btn {
+    display: none; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--accent4); color: #fff; font-size: 10px;
+    align-items: center; justify-content: center;
+    cursor: pointer; font-weight: 700; border: none;
+  }
+  .project-box.editing .delete-project-btn { display: flex; }
+
+  /* SHORTCUTS */
+  .shortcuts { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; }
+  .shortcut {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: pointer; padding: 4px 2px; border-radius: 10px;
+    transition: background 0.15s; text-decoration: none;
+  }
+  .shortcut:active { background: var(--bg); }
+  .shortcut-icon {
+    width: 40px; height: 40px; border-radius: 11px;
+    background: var(--bg); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; position: relative;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .shortcut:active .shortcut-icon { transform: scale(0.88); box-shadow: 0 0 0 2px var(--accent); }
+  .shortcut-label {
+    font-size: 8px; color: var(--muted); text-align: center;
+    max-width: 44px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .shortcut-add .shortcut-icon {
+    border: 1.5px dashed var(--border2); background: transparent;
+    font-size: 16px; color: var(--muted);
+  }
+  .project-box.editing .shortcut:not(.shortcut-add) .shortcut-icon {
+    animation: wiggle 0.5s infinite alternate;
+  }
+  .delete-btn {
+    display: none; position: absolute; top: -4px; right: -4px;
+    width: 15px; height: 15px; background: var(--accent4); border-radius: 50%;
+    font-size: 9px; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; z-index: 10; cursor: pointer; border: none;
+  }
+  .project-box.editing .shortcut:not(.shortcut-add) .delete-btn { display: flex; }
+  .empty-hint {
+    font-size: 10px; color: var(--muted); text-align: center;
+    padding: 8px 0 2px; opacity: 0.7; grid-column: 1/-1;
+  }
+
+  /* SKELETON */
+  .skeleton-box {
+    background: var(--surface); border-radius: 16px;
+    border: 1.5px solid var(--border); padding: 14px 12px; box-shadow: var(--shadow);
+  }
+  .skeleton-line {
+    height: 12px; border-radius: 6px; margin-bottom: 8px;
+    background: linear-gradient(90deg,var(--bg) 25%,var(--border) 50%,var(--bg) 75%);
+    background-size: 200% 100%; animation: shimmer 1.4s infinite;
+  }
+  .skeleton-icons { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-top: 10px; }
+  .skeleton-icon {
+    height: 40px; border-radius: 11px;
+    background: linear-gradient(90deg,var(--bg) 25%,var(--border) 50%,var(--bg) 75%);
+    background-size: 200% 100%; animation: shimmer 1.4s infinite;
+  }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+  /* MODAL */
   .modal-backdrop {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.72);
-    z-index: 200;
-    align-items: flex-end;
-    backdrop-filter: blur(4px);
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.35); z-index: 200;
+    align-items: flex-end; backdrop-filter: blur(4px);
   }
   .modal-backdrop.open { display: flex; }
-
   .modal {
-    background: var(--surface);
-    border-radius: 24px 24px 0 0;
-    padding: 24px 20px 40px;
-    width: 100%;
+    background: var(--surface); border-radius: 24px 24px 0 0;
+    padding: 24px 20px 40px; width: 100%;
     border-top: 1px solid var(--border);
-    animation: slideUp 0.25s ease;
+    animation: slideUp 0.25s ease; box-shadow: 0 -8px 32px rgba(0,0,0,0.1);
   }
-
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to   { transform: translateY(0); }
-  }
-
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
   .modal h3 {
-    font-family: 'Syne', sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    color: var(--text);
+    font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700;
+    margin-bottom: 20px; color: var(--text);
   }
-
   .modal-field { margin-bottom: 14px; }
-
   .modal-field label {
-    font-size: 12px;
-    color: var(--muted);
-    display: block;
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-size: 11px; color: var(--muted); display: block; margin-bottom: 6px;
+    text-transform: uppercase; letter-spacing: 0.6px; font-weight: 500;
   }
-
   .modal-field input {
-    width: 100%;
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px 14px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    outline: none;
+    width: 100%; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 14px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 15px; outline: none;
     transition: border-color 0.2s;
   }
   .modal-field input:focus { border-color: var(--accent1); }
-
-  .emoji-picker {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    gap: 6px;
-    margin-top: 6px;
-  }
-
+  .emoji-picker { display: grid; grid-template-columns: repeat(8,1fr); gap: 6px; margin-top: 6px; }
   .emoji-opt {
-    width: 38px; height: 38px;
-    border-radius: 10px;
-    background: var(--card-bg);
+    width: 38px; height: 38px; border-radius: 10px; background: var(--bg);
     border: 1.5px solid transparent;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-    cursor: pointer;
-    transition: border-color 0.15s;
+    display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer;
   }
-  .emoji-opt.selected { border-color: var(--accent1); background: rgba(79,142,247,0.15); }
-  .emoji-opt:active { transform: scale(0.9); }
-
-  .modal-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-  }
-
+  .emoji-opt.selected { border-color: var(--accent1); background: rgba(59,124,244,0.1); }
+  .emoji-opt:active   { transform: scale(0.9); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
   .btn {
-    flex: 1;
-    padding: 14px;
-    border-radius: 14px;
-    border: none;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.15s, transform 0.15s;
+    flex: 1; padding: 14px; border-radius: 14px; border: none;
+    font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500;
+    cursor: pointer; transition: opacity 0.15s, transform 0.15s;
   }
-  .btn:active { opacity: 0.8; transform: scale(0.97); }
+  .btn:active  { opacity: 0.8; transform: scale(0.97); }
   .btn-primary { background: var(--accent1); color: #fff; }
-  .btn-ghost   { background: var(--border); color: var(--text); }
+  .btn-ghost   { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
 
-  .add-project-btn {
-    margin: 0 16px 28px;
-    padding: 14px;
-    border-radius: 16px;
-    border: 1.5px dashed var(--border);
-    background: transparent;
-    color: var(--muted);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    width: calc(100% - 32px);
-    cursor: pointer;
-    transition: background 0.15s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-  .add-project-btn:active { background: var(--surface); }
-
+  /* TOAST */
   .toast {
-    position: fixed;
-    bottom: 72px;
-    left: 50%;
+    position: fixed; bottom: 24px; left: 50%;
     transform: translateX(-50%) translateY(16px);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 10px 22px;
-    border-radius: 30px;
-    font-size: 13px;
-    opacity: 0;
-    transition: all 0.28s ease;
-    pointer-events: none;
-    white-space: nowrap;
-    z-index: 300;
+    background: var(--text); color: #fff;
+    padding: 10px 22px; border-radius: 30px; font-size: 13px;
+    opacity: 0; transition: all 0.28s ease;
+    pointer-events: none; white-space: nowrap; z-index: 300;
+    box-shadow: var(--shadow2);
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  /* PWA install banner */
-  .install-banner {
-    display: none;
-    margin: 0 16px 0;
-    padding: 12px 16px;
-    border-radius: 14px;
-    background: rgba(79,142,247,0.1);
-    border: 1px solid var(--accent1);
-    align-items: center;
-    gap: 12px;
-    animation: fadeUp 0.4s ease;
+  /* ERROR */
+  .error-state {
+    display: none; flex-direction: column; align-items: center;
+    padding: 48px 24px; text-align: center; gap: 12px;
   }
-  .install-banner.show { display: flex; }
-  .install-banner span { font-size: 13px; color: var(--text); flex: 1; line-height: 1.4; }
-  .install-banner button {
-    background: var(--accent1);
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    padding: 8px 14px;
-    font-size: 13px;
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .install-close {
-    background: none !important;
-    color: var(--muted) !important;
-    padding: 4px 8px !important;
-    font-size: 18px !important;
+  .error-state.show { display: flex; }
+  .error-state .icon { font-size: 40px; }
+  .error-state h3 { font-family: 'Syne', sans-serif; font-size: 18px; }
+  .error-state p  { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .error-state button {
+    margin-top: 8px; padding: 12px 28px; background: var(--accent1);
+    color: #fff; border: none; border-radius: 12px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; cursor: pointer;
   }
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <h1>⚡ Meus Projetos</h1>
+  <h1>⚡ <span>Meus</span> Projetos</h1>
   <div class="topbar-actions">
-    <button class="btn-icon" id="sortBtn" onclick="sortAlpha()" title="Ordenar A–Z">🔤</button>
+    <button class="btn-icon" id="sortBtn"    onclick="sortAlpha()"      title="A–Z">🔤</button>
     <button class="btn-icon" id="editToggle" onclick="toggleEditMode()" title="Editar">✏️</button>
-    <button class="btn-icon" onclick="showAddProject()" title="Novo projeto">＋</button>
   </div>
+</div>
+
+<div class="status-bar">
+  <div class="status-dot loading" id="statusDot"></div>
+  <span id="statusText">Carregando projetos...</span>
+  <button class="btn-refresh" onclick="carregarProjetos()">↻ Atualizar</button>
 </div>
 
 <div class="drag-hint">☰ Segure ⠿ e arraste para reordenar</div>
 
-<!-- Banner de instalação PWA -->
-<div class="install-banner" id="installBanner">
-  <span>📲 Instale como app para abrir sem barra do navegador!</span>
-  <button onclick="installPWA()">Instalar</button>
-  <button class="install-close" onclick="dismissInstall()">✕</button>
-</div>
-
 <div class="grid" id="projectGrid"></div>
 
-<button class="add-project-btn" onclick="showAddProject()">＋ Novo Projeto</button>
+<div class="error-state" id="errorState">
+  <div class="icon">⚠️</div>
+  <h3>Não foi possível carregar</h3>
+  <p>Verifique se o Web App está publicado e tente novamente.</p>
+  <button onclick="carregarProjetos()">Tentar novamente</button>
+</div>
 
 <div class="toast" id="toast"></div>
 
-<!-- Modal: atalho -->
+<!-- Modal: novo atalho manual -->
 <div class="modal-backdrop" id="modalBackdrop" onclick="closeModal(event)">
   <div class="modal">
     <h3>Novo Atalho</h3>
     <div class="modal-field">
       <label>Nome</label>
-      <input type="text" id="scName" placeholder="Ex: Drive, Notion, Site...">
+      <input type="text" id="scName" placeholder="Ex: CRM, Mapa, Vídeo...">
     </div>
     <div class="modal-field">
       <label>Link (URL)</label>
@@ -544,100 +339,101 @@ document.write('<link rel="manifest" href="' + manifestURL + '">');
       <div class="emoji-picker" id="emojiPicker"></div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-ghost"   onclick="closeModal()">Cancelar</button>
       <button class="btn btn-primary" onclick="saveShortcut()">Salvar</button>
     </div>
   </div>
 </div>
 
-<!-- Modal: projeto -->
-<div class="modal-backdrop" id="projModalBackdrop" onclick="closeProjModal(event)">
-  <div class="modal">
-    <h3>Novo Projeto</h3>
-    <div class="modal-field">
-      <label>Nome do Projeto</label>
-      <input type="text" id="projName" placeholder="Ex: Marketing, Obras, Financeiro...">
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeProjModal()">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveProject()">Criar</button>
-    </div>
-  </div>
-</div>
-
 <script>
-const EMOJIS = ['📄','📁','🌐','📊','📝','📌','🔗','💼','📅','🖼️','📧','💬','🎯','📦','🔧','⚙️','📱','💻','🗂️','🏗️','📐','📋','🧾','💡','🔐','📤','📥','🎨','🎬','🎵','📸','🧩','🗺️','📞','🔍','✅'];
-const ACCENTS = ['#4f8ef7','#a259ff','#00d4aa','#ff6b6b','#f7a825','#25d4f7'];
+// ── CONFIGURAÇÃO — cole a URL do Web App após publicar ────
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxkyNAR_WXCq2lyjJrGHZmcXq0eW5VlXlbNxPZa0_JBN-TSWd0e_GKFqb_BeXyVXDQH/exec';
 
-let projects = JSON.parse(localStorage.getItem('painelProjects') || 'null') || [
-  { id:1, name:'Projeto 1', color:'#4f8ef7', shortcuts:[
-    { id:1, name:'Drive', url:'https://drive.google.com', icon:'📁' },
-    { id:2, name:'Docs',  url:'https://docs.google.com',  icon:'📄' },
-    { id:3, name:'Meet',  url:'https://meet.google.com',  icon:'💬' },
-  ]},
-  { id:2, name:'Projeto 2', color:'#a259ff', shortcuts:[] },
-  { id:3, name:'Projeto 3', color:'#00d4aa', shortcuts:[] },
-  { id:4, name:'Projeto 4', color:'#ff6b6b', shortcuts:[] },
-];
+const ACCENTS = ['#3b7cf4','#8b5cf6','#059669','#ef4444','#f59e0b','#06b6d4','#ec4899','#10b981'];
+const EMOJIS  = ['📄','📁','🌐','📊','📝','📌','🔗','💼','📅','🖼️','📧','💬','🎯','📦','🔧','⚙️','📱','💻','🗂️','🏗️','📐','📋','🧾','💡','🔐','📤','📥','🎨','🎬','🎵','📸','🧩','🗺️','📞','🔍','✅'];
 
-let editMode      = false;
-let currentProjId = null;
-let selectedEmoji = '🔗';
-let nextId        = 200;
+let projects       = [];
+let editMode       = false;
+let currentProjIdx = null;
+let selectedEmoji  = '🔗';
+let extraLinks     = JSON.parse(localStorage.getItem('painelExtras') || '{}');
 
-// ── PWA Install ──────────────────────────────────────────
-let deferredPrompt = null;
+// ── CARREGAR DA PLANILHA ──────────────────────────────────
+async function carregarProjetos() {
+  setStatus('loading', 'Carregando projetos...');
+  document.getElementById('errorState').classList.remove('show');
+  mostrarSkeletons();
 
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  if (!localStorage.getItem('pwaInstallDismissed')) {
-    document.getElementById('installBanner').classList.add('show');
-  }
-});
+  try {
+    const resp  = await fetch(WEB_APP_URL);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const dados = await resp.json();
 
-window.addEventListener('appinstalled', () => {
-  document.getElementById('installBanner').classList.remove('show');
-  toast('✅ App instalado com sucesso!');
-});
-
-async function installPWA() {
-  if (!deferredPrompt) {
-    toast('Use o menu do navegador → "Adicionar à tela inicial"');
-    return;
-  }
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.result;
-  if (outcome === 'accepted') toast('✅ Instalando...');
-  deferredPrompt = null;
-  document.getElementById('installBanner').classList.remove('show');
-}
-
-function dismissInstall() {
-  document.getElementById('installBanner').classList.remove('show');
-  localStorage.setItem('pwaInstallDismissed', '1');
-}
-
-// Register service worker for offline/PWA
-if ('serviceWorker' in navigator) {
-  const swCode = `
-    const CACHE = 'painel-v1';
-    self.addEventListener('install', e => {
-      e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/PainelProjetos1/'])));
-      self.skipWaiting();
+    projects = dados.map((p, idx) => {
+      const key    = slugify(p.nome);
+      const extras = extraLinks[key] || [];
+      return {
+        nome:      p.nome,
+        color:     ACCENTS[idx % ACCENTS.length],
+        shortcuts: [...p.shortcuts, ...extras],
+        key
+      };
     });
-    self.addEventListener('fetch', e => {
-      e.respondWith(caches.match(e.request).then(r => r || fetch(e.request)));
-    });
-  `;
-  const swBlob = new Blob([swCode], { type: 'application/javascript' });
-  const swURL  = URL.createObjectURL(swBlob);
-  navigator.serviceWorker.register(swURL, { scope: '/PainelProjetos1/' })
-    .catch(() => {}); // silently fail if blocked
+
+    // Restaura ordem salva
+    const savedOrder = JSON.parse(localStorage.getItem('painelOrder') || '[]');
+    if (savedOrder.length > 0) {
+      projects.sort((a, b) => {
+        const ia = savedOrder.indexOf(a.key);
+        const ib = savedOrder.indexOf(b.key);
+        return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+      });
+    }
+
+    renderAll();
+    setStatus('ok', `${projects.length} projeto${projects.length !== 1 ? 's' : ''} carregado${projects.length !== 1 ? 's' : ''}`);
+
+  } catch(e) {
+    console.error(e);
+    setStatus('error', 'Erro ao carregar');
+    document.getElementById('projectGrid').innerHTML = '';
+    document.getElementById('errorState').classList.add('show');
+  }
 }
 
-// ── PERSIST ──────────────────────────────────────────────
-function save() { localStorage.setItem('painelProjects', JSON.stringify(projects)); }
+function slugify(str) {
+  return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-');
+}
+
+function setStatus(type, msg) {
+  document.getElementById('statusDot').className = 'status-dot ' + (type === 'ok' ? '' : type);
+  document.getElementById('statusText').textContent = msg;
+}
+
+function mostrarSkeletons() {
+  document.getElementById('projectGrid').innerHTML = Array(6).fill(0).map(() => `
+    <div class="skeleton-box">
+      <div class="skeleton-line" style="width:70%"></div>
+      <div class="skeleton-line" style="width:40%;height:8px"></div>
+      <div class="skeleton-icons">
+        <div class="skeleton-icon"></div><div class="skeleton-icon"></div>
+        <div class="skeleton-icon"></div><div class="skeleton-icon"></div>
+      </div>
+    </div>`).join('');
+}
+
+function saveOrder() {
+  localStorage.setItem('painelOrder', JSON.stringify(projects.map(p => p.key)));
+}
+
+function saveExtras() {
+  const extras = {};
+  projects.forEach(p => {
+    const manual = p.shortcuts.filter(s => !s._fromSheet);
+    if (manual.length > 0) extras[p.key] = manual;
+  });
+  localStorage.setItem('painelExtras', JSON.stringify(extras));
+}
 
 // ── RENDER ───────────────────────────────────────────────
 function renderAll() {
@@ -648,33 +444,33 @@ function renderAll() {
     const box = document.createElement('div');
     box.className = 'project-box' + (editMode ? ' editing' : '');
     box.style.setProperty('--accent', p.color);
-    box.dataset.id = p.id;
-    box.style.animation = `fadeUp 0.35s ease ${idx * 0.055}s both`;
+    box.dataset.idx = idx;
+    box.style.animation = `fadeUp 0.3s ease ${idx * 0.04}s both`;
 
-    const scHTML = p.shortcuts.map(s => `
+    const scHTML = p.shortcuts.map((s, si) => `
       <a class="shortcut" href="${s.url}" target="_blank" onclick="scClick(event)">
         <div class="shortcut-icon">
           ${s.icon}
-          <button class="delete-btn" onclick="deleteShortcut(event,${p.id},${s.id})">✕</button>
+          <button class="delete-btn" onclick="deleteShortcut(event,${idx},${si})">✕</button>
         </div>
-        <span class="shortcut-label">${s.name}</span>
+        <span class="shortcut-label">${s.nome}</span>
       </a>`).join('');
 
     const hint = p.shortcuts.length === 0
-      ? '<div class="empty-hint">Toque em + para adicionar</div>' : '';
+      ? '<div class="empty-hint">Toque + para adicionar</div>' : '';
 
     box.innerHTML = `
-      <div class="drag-handle" data-pid="${p.id}">⠿</div>
+      <div class="drag-handle" data-idx="${idx}">⠿</div>
       <div class="project-header">
-        <span class="project-name" onclick="renameProject(${p.id})">${p.name}</span>
-        <div class="project-header-right">
+        <span class="project-name">${p.nome}</span>
+        <div class="project-meta">
           <span class="project-count">${p.shortcuts.length} atalho${p.shortcuts.length!==1?'s':''}</span>
-          <button class="delete-project-btn" onclick="deleteProject(${p.id})">✕</button>
+          <button class="delete-project-btn" onclick="deleteProject(${idx})">✕</button>
         </div>
       </div>
       <div class="shortcuts">
         ${scHTML}${hint}
-        <div class="shortcut shortcut-add" onclick="showAddShortcut(${p.id})">
+        <div class="shortcut shortcut-add" onclick="showAddShortcut(${idx})">
           <div class="shortcut-icon">＋</div>
           <span class="shortcut-label">Adicionar</span>
         </div>
@@ -690,12 +486,9 @@ function renderAll() {
 
 // ── SORT ─────────────────────────────────────────────────
 function sortAlpha() {
-  projects.sort((a, b) => a.name.localeCompare(b.name, 'pt', { sensitivity:'base' }));
-  save(); renderAll();
-  toast('Projetos ordenados de A a Z 🔤');
-  const btn = document.getElementById('sortBtn');
-  btn.classList.add('sort-flash');
-  setTimeout(() => btn.classList.remove('sort-flash'), 1000);
+  projects.sort((a,b) => a.nome.localeCompare(b.nome,'pt',{sensitivity:'base'}));
+  saveOrder(); renderAll();
+  toast('Ordenado de A a Z 🔤');
 }
 
 // ── EDIT MODE ────────────────────────────────────────────
@@ -710,52 +503,43 @@ function toggleEditMode() {
 }
 
 // ── DRAG & DROP ──────────────────────────────────────────
-let dragSrcId = null, floatEl = null;
-let dragOffX = 0, dragOffY = 0, overProjId = null;
+let dragSrcIdx=null, floatEl=null, dragOffX=0, dragOffY=0, overIdx=null;
 
 function dragStart(e) {
   if (!editMode) return;
   e.preventDefault(); e.stopPropagation();
-  const handle = e.currentTarget;
-  dragSrcId = parseInt(handle.dataset.pid);
-  const srcBox = document.querySelector(`.project-box[data-id="${dragSrcId}"]`);
-  const rect = srcBox.getBoundingClientRect();
+  dragSrcIdx = parseInt(e.currentTarget.dataset.idx);
+  const srcBox = document.querySelector(`.project-box[data-idx="${dragSrcIdx}"]`);
+  const rect   = srcBox.getBoundingClientRect();
   const cx = e.touches ? e.touches[0].clientX : e.clientX;
   const cy = e.touches ? e.touches[0].clientY : e.clientY;
-  dragOffX = cx - rect.left;
-  dragOffY = cy - rect.top;
+  dragOffX = cx - rect.left; dragOffY = cy - rect.top;
   floatEl = srcBox.cloneNode(true);
-  floatEl.classList.add('drag-floating');
-  floatEl.classList.remove('editing');
-  floatEl.style.width  = rect.width  + 'px';
-  floatEl.style.height = rect.height + 'px';
-  floatEl.style.left   = rect.left   + 'px';
-  floatEl.style.top    = rect.top    + 'px';
+  floatEl.classList.add('drag-floating'); floatEl.classList.remove('editing');
+  floatEl.style.width = rect.width+'px'; floatEl.style.height = rect.height+'px';
+  floatEl.style.left  = rect.left+'px';  floatEl.style.top    = rect.top+'px';
   document.body.appendChild(floatEl);
   srcBox.classList.add('is-dragging-src');
-  document.addEventListener('touchmove', dragMove, { passive: false });
+  document.addEventListener('touchmove', dragMove, {passive:false});
   document.addEventListener('touchend',  dragEnd);
   document.addEventListener('mousemove', dragMove);
   document.addEventListener('mouseup',   dragEnd);
 }
 
 function dragMove(e) {
-  if (!floatEl) return;
-  e.preventDefault();
+  if (!floatEl) return; e.preventDefault();
   const cx = e.touches ? e.touches[0].clientX : e.clientX;
   const cy = e.touches ? e.touches[0].clientY : e.clientY;
-  floatEl.style.left = (cx - dragOffX) + 'px';
-  floatEl.style.top  = (cy - dragOffY) + 'px';
+  floatEl.style.left = (cx-dragOffX)+'px'; floatEl.style.top = (cy-dragOffY)+'px';
   floatEl.style.display = 'none';
   const el = document.elementFromPoint(cx, cy);
   floatEl.style.display = '';
   const targetBox = el ? el.closest('.project-box') : null;
-  const targetId  = targetBox ? parseInt(targetBox.dataset.id) : null;
+  const targetIdx = targetBox ? parseInt(targetBox.dataset.idx) : null;
   document.querySelectorAll('.project-box').forEach(b => b.classList.remove('is-drag-over'));
-  if (targetId && targetId !== dragSrcId) {
-    targetBox.classList.add('is-drag-over');
-    overProjId = targetId;
-  } else { overProjId = null; }
+  if (targetIdx !== null && targetIdx !== dragSrcIdx) {
+    targetBox.classList.add('is-drag-over'); overIdx = targetIdx;
+  } else { overIdx = null; }
 }
 
 function dragEnd() {
@@ -765,28 +549,22 @@ function dragEnd() {
   document.removeEventListener('mouseup',   dragEnd);
   if (floatEl) { floatEl.remove(); floatEl = null; }
   document.querySelectorAll('.project-box').forEach(b =>
-    b.classList.remove('is-dragging-src', 'is-drag-over'));
-  if (overProjId && overProjId !== dragSrcId) {
-    const si = projects.findIndex(p => p.id === dragSrcId);
-    const di = projects.findIndex(p => p.id === overProjId);
-    if (si !== -1 && di !== -1) {
-      [projects[si], projects[di]] = [projects[di], projects[si]];
-      save();
-    }
+    b.classList.remove('is-dragging-src','is-drag-over'));
+  if (overIdx !== null && overIdx !== dragSrcIdx) {
+    [projects[dragSrcIdx], projects[overIdx]] = [projects[overIdx], projects[dragSrcIdx]];
+    saveOrder();
   }
-  dragSrcId = null; overProjId = null;
-  renderAll();
+  dragSrcIdx = null; overIdx = null; renderAll();
 }
 
 // ── SHORTCUTS ────────────────────────────────────────────
 function scClick(e) { if (editMode) e.preventDefault(); }
 
-function showAddShortcut(projId) {
-  currentProjId = projId;
+function showAddShortcut(projIdx) {
+  currentProjIdx = projIdx;
   document.getElementById('scName').value = '';
   document.getElementById('scUrl').value  = '';
-  selectedEmoji = '🔗';
-  renderEmojiPicker();
+  selectedEmoji = '🔗'; renderEmojiPicker();
   document.getElementById('modalBackdrop').classList.add('open');
 }
 
@@ -804,66 +582,34 @@ function renderEmojiPicker() {
 function pickEmoji(em) { selectedEmoji = em; renderEmojiPicker(); }
 
 function saveShortcut() {
-  const name = document.getElementById('scName').value.trim();
+  const nome = document.getElementById('scName').value.trim();
   const url  = document.getElementById('scUrl').value.trim();
-  if (!name || !url) { toast('⚠️ Preencha nome e URL'); return; }
-  const proj = projects.find(p => p.id === currentProjId);
-  if (!proj) return;
-  proj.shortcuts.push({ id: nextId++, name, url, icon: selectedEmoji });
-  save(); closeModal(); renderAll();
+  if (!nome || !url) { toast('⚠️ Preencha nome e URL'); return; }
+  projects[currentProjIdx].shortcuts.push({ nome, url, icon: selectedEmoji });
+  saveExtras(); closeModal(); renderAll();
 }
 
-function deleteShortcut(e, projId, scId) {
+function deleteShortcut(e, projIdx, scIdx) {
   e.preventDefault(); e.stopPropagation();
-  const proj = projects.find(p => p.id === projId);
-  if (!proj) return;
-  proj.shortcuts = proj.shortcuts.filter(s => s.id !== scId);
-  save(); renderAll();
+  projects[projIdx].shortcuts.splice(scIdx, 1);
+  saveExtras(); renderAll();
 }
 
-// ── PROJECTS ─────────────────────────────────────────────
-function showAddProject() {
-  document.getElementById('projName').value = '';
-  document.getElementById('projModalBackdrop').classList.add('open');
-}
-
-function closeProjModal(e) {
-  if (!e || e.target === document.getElementById('projModalBackdrop'))
-    document.getElementById('projModalBackdrop').classList.remove('open');
-}
-
-function saveProject() {
-  const name = document.getElementById('projName').value.trim();
-  if (!name) { toast('⚠️ Digite um nome'); return; }
-  const color = ACCENTS[projects.length % ACCENTS.length];
-  projects.push({ id: nextId++, name, color, shortcuts: [] });
-  save(); closeProjModal(); renderAll();
-}
-
-function deleteProject(projId) {
-  if (!confirm('Excluir este projeto e todos os atalhos?')) return;
-  projects = projects.filter(p => p.id !== projId);
-  save(); renderAll();
-}
-
-function renameProject(projId) {
-  const proj = projects.find(p => p.id === projId);
-  if (!proj) return;
-  const n = prompt('Novo nome:', proj.name);
-  if (n && n.trim()) { proj.name = n.trim(); save(); renderAll(); }
+function deleteProject(projIdx) {
+  if (!confirm('Remover este projeto do painel?\n(Não afeta a planilha)')) return;
+  projects.splice(projIdx, 1); saveOrder(); renderAll();
 }
 
 // ── TOAST ────────────────────────────────────────────────
 function toast(msg) {
   const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
+  el.textContent = msg; el.classList.add('show');
   clearTimeout(el._t);
   el._t = setTimeout(() => el.classList.remove('show'), 2200);
 }
 
 // ── INIT ─────────────────────────────────────────────────
-renderAll();
+carregarProjetos();
 </script>
 </body>
 </html>
