@@ -35,7 +35,6 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  /* TOPBAR */
   .topbar {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
@@ -44,30 +43,24 @@
     display: flex; align-items: center; justify-content: space-between;
     box-shadow: var(--shadow);
   }
-
   .topbar h1 {
     font-family: 'Syne', sans-serif;
     font-size: 20px; font-weight: 800;
     color: var(--text); letter-spacing: -0.5px;
   }
   .topbar h1 span { color: var(--accent1); }
-
   .topbar-actions { display: flex; gap: 8px; }
 
   .btn-icon {
     width: 36px; height: 36px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text); font-size: 15px;
+    border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text); font-size: 15px;
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.15s;
-    box-shadow: var(--shadow);
+    cursor: pointer; transition: all 0.15s; box-shadow: var(--shadow);
   }
   .btn-icon:active { transform: scale(0.92); background: var(--bg); }
   .btn-icon.active { background: #fff0f0; border-color: var(--accent4); }
 
-  /* STATUS */
   .status-bar {
     display: flex; align-items: center; gap: 8px;
     padding: 8px 16px; font-size: 12px; color: var(--muted);
@@ -94,7 +87,6 @@
   }
   body.editing-mode .drag-hint { display: block; }
 
-  /* GRID — 3 colunas */
   .grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -102,11 +94,9 @@
     padding: 8px 12px 24px;
   }
 
-  /* PROJECT BOX */
   .project-box {
     background: var(--surface);
-    border-radius: 16px;
-    border: 1.5px solid var(--border);
+    border-radius: 16px; border: 1.5px solid var(--border);
     padding: 14px 12px 12px;
     position: relative; overflow: visible;
     transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
@@ -140,7 +130,6 @@
   .project-box.editing .drag-handle { display: flex; animation: wiggle 0.5s infinite alternate; }
   @keyframes wiggle { from{transform:rotate(-5deg)} to{transform:rotate(5deg)} }
 
-  /* PROJECT HEADER */
   .project-header { margin-bottom: 10px; }
   .project-name {
     font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
@@ -160,7 +149,6 @@
   }
   .project-box.editing .delete-project-btn { display: flex; }
 
-  /* SHORTCUTS */
   .shortcuts { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; }
   .shortcut {
     display: flex; flex-direction: column; align-items: center; gap: 4px;
@@ -199,7 +187,6 @@
     padding: 8px 0 2px; opacity: 0.7; grid-column: 1/-1;
   }
 
-  /* SKELETON */
   .skeleton-box {
     background: var(--surface); border-radius: 16px;
     border: 1.5px solid var(--border); padding: 14px 12px; box-shadow: var(--shadow);
@@ -217,7 +204,6 @@
   }
   @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
-  /* MODAL */
   .modal-backdrop {
     display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,0.35); z-index: 200;
@@ -265,7 +251,6 @@
   .btn-primary { background: var(--accent1); color: #fff; }
   .btn-ghost   { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
 
-  /* TOAST */
   .toast {
     position: fixed; bottom: 24px; left: 50%;
     transform: translateX(-50%) translateY(16px);
@@ -277,7 +262,6 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  /* ERROR */
   .error-state {
     display: none; flex-direction: column; align-items: center;
     padding: 48px 24px; text-align: center; gap: 12px;
@@ -310,9 +294,7 @@
 </div>
 
 <div class="drag-hint">☰ Segure ⠿ e arraste para reordenar</div>
-
 <div class="grid" id="projectGrid"></div>
-
 <div class="error-state" id="errorState">
   <div class="icon">⚠️</div>
   <h3>Não foi possível carregar</h3>
@@ -322,7 +304,6 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Modal: novo atalho manual -->
 <div class="modal-backdrop" id="modalBackdrop" onclick="closeModal(event)">
   <div class="modal">
     <h3>Novo Atalho</h3>
@@ -346,7 +327,7 @@
 </div>
 
 <script>
-// ── CONFIGURAÇÃO — cole a URL do Web App após publicar ────
+// ── CONFIGURAÇÃO ──────────────────────────────────────────
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxkyNAR_WXCq2lyjJrGHZmcXq0eW5VlXlbNxPZa0_JBN-TSWd0e_GKFqb_BeXyVXDQH/exec';
 
 const ACCENTS = ['#3b7cf4','#8b5cf6','#059669','#ef4444','#f59e0b','#06b6d4','#ec4899','#10b981'];
@@ -358,47 +339,68 @@ let currentProjIdx = null;
 let selectedEmoji  = '🔗';
 let extraLinks     = JSON.parse(localStorage.getItem('painelExtras') || '{}');
 
-// ── CARREGAR DA PLANILHA ──────────────────────────────────
-async function carregarProjetos() {
+// ── CARREGAR VIA JSONP (resolve CORS) ─────────────────────
+function carregarProjetos() {
   setStatus('loading', 'Carregando projetos...');
   document.getElementById('errorState').classList.remove('show');
   mostrarSkeletons();
 
-  try {
-    const resp  = await fetch(WEB_APP_URL);
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const dados = await resp.json();
+  // Remove script anterior se existir
+  const old = document.getElementById('jsonp-script');
+  if (old) old.remove();
 
-    projects = dados.map((p, idx) => {
-      const key    = slugify(p.nome);
-      const extras = extraLinks[key] || [];
-      return {
-        nome:      p.nome,
-        color:     ACCENTS[idx % ACCENTS.length],
-        shortcuts: [...p.shortcuts, ...extras],
-        key
-      };
-    });
+  // Timeout de segurança
+  const timer = setTimeout(() => {
+    setStatus('error', 'Tempo esgotado');
+    document.getElementById('projectGrid').innerHTML = '';
+    document.getElementById('errorState').classList.add('show');
+  }, 15000);
 
-    // Restaura ordem salva
-    const savedOrder = JSON.parse(localStorage.getItem('painelOrder') || '[]');
-    if (savedOrder.length > 0) {
-      projects.sort((a, b) => {
-        const ia = savedOrder.indexOf(a.key);
-        const ib = savedOrder.indexOf(b.key);
-        return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+  // Callback global que o Apps Script vai chamar
+  window._painelCallback = function(dados) {
+    clearTimeout(timer);
+    try {
+      projects = dados.map((p, idx) => {
+        const key    = slugify(p.nome);
+        const extras = extraLinks[key] || [];
+        return {
+          nome:      p.nome,
+          color:     ACCENTS[idx % ACCENTS.length],
+          shortcuts: [...p.shortcuts, ...extras],
+          key
+        };
       });
+
+      // Restaura ordem salva
+      const savedOrder = JSON.parse(localStorage.getItem('painelOrder') || '[]');
+      if (savedOrder.length > 0) {
+        projects.sort((a, b) => {
+          const ia = savedOrder.indexOf(a.key);
+          const ib = savedOrder.indexOf(b.key);
+          return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+        });
+      }
+
+      renderAll();
+      setStatus('ok', `${projects.length} projeto${projects.length !== 1 ? 's' : ''} carregado${projects.length !== 1 ? 's' : ''}`);
+    } catch(e) {
+      setStatus('error', 'Erro ao processar dados');
+      document.getElementById('projectGrid').innerHTML = '';
+      document.getElementById('errorState').classList.add('show');
     }
+  };
 
-    renderAll();
-    setStatus('ok', `${projects.length} projeto${projects.length !== 1 ? 's' : ''} carregado${projects.length !== 1 ? 's' : ''}`);
-
-  } catch(e) {
-    console.error(e);
+  // Injeta script JSONP
+  const script = document.createElement('script');
+  script.id  = 'jsonp-script';
+  script.src = WEB_APP_URL + '?callback=_painelCallback';
+  script.onerror = () => {
+    clearTimeout(timer);
     setStatus('error', 'Erro ao carregar');
     document.getElementById('projectGrid').innerHTML = '';
     document.getElementById('errorState').classList.add('show');
-  }
+  };
+  document.head.appendChild(script);
 }
 
 function slugify(str) {
