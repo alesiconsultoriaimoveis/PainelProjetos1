@@ -363,10 +363,12 @@ function carregarProjetos() {
       projects = dados.map((p, idx) => {
         const key    = slugify(p.nome);
         const extras = extraLinks[key] || [];
+        // Marca atalhos da planilha com _fromSheet para não duplicar
+        const sheetShortcuts = p.shortcuts.map(s => ({ ...s, _fromSheet: true }));
         return {
           nome:      p.nome,
           color:     ACCENTS[idx % ACCENTS.length],
-          shortcuts: [...p.shortcuts, ...extras],
+          shortcuts: [...sheetShortcuts, ...extras],
           key
         };
       });
