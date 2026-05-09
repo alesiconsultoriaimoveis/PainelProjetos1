@@ -284,6 +284,7 @@
   <div class="topbar-actions">
     <button class="btn-icon" id="sortBtn"    onclick="sortAlpha()"      title="A–Z">🔤</button>
     <button class="btn-icon" id="editToggle" onclick="toggleEditMode()" title="Editar">✏️</button>
+    <button class="btn-icon" onclick="resetCache()" title="Limpar duplicados">🗑️</button>
   </div>
 </div>
 
@@ -610,6 +611,16 @@ function toast(msg) {
   el.textContent = msg; el.classList.add('show');
   clearTimeout(el._t);
   el._t = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ── RESET CACHE ─────────────────────────────────────────
+function resetCache() {
+  if (!confirm("Limpar duplicados?\nIsso remove atalhos adicionados manualmente (exceto os da planilha).")) return;
+  localStorage.removeItem("painelExtras");
+  localStorage.removeItem("painelOrder");
+  extraLinks = {};
+  toast("Cache limpo! Recarregando...");
+  setTimeout(() => carregarProjetos(), 800);
 }
 
 // ── INIT ─────────────────────────────────────────────────
