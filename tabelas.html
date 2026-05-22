@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#ffffff">
+<title>Tabelas de Vendas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f4f6;
+  --surface: #ffffff;
+  --border: #e2e2e8;
+  --text: #1a1a2e;
+  --muted: #888898;
+  --accent: #3b7cf4;
+  --shadow: 0 2px 12px rgba(0,0,0,0.07);
+  --shadow2: 0 8px 32px rgba(0,0,0,0.12);
+  --his1: #ef4444;
+  --his2: #f59e0b;
+  --hmp: #3b7cf4;
+  --r2v: #8b5cf6;
+  --his1-bg: #fef2f2;
+  --his2-bg: #fffbeb;
+  --hmp-bg: #eff6ff;
+  --r2v-bg: #f5f3ff;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 20px 12px;
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: var(--shadow);
+}
+.topbar h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px; font-weight: 800; letter-spacing: -0.5px;
+}
+.topbar h1 span { color: var(--accent); }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+
+.btn {
+  padding: 8px 16px; border-radius: 10px; border: none;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:active { opacity: 0.85; }
+.btn-ghost { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
+.btn-ghost:active { background: var(--border); }
+
+/* ── TELA DE SELEÇÃO DE REGIÃO ── */
+.regiao-screen {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: calc(100vh - 60px);
+  padding: 24px;
+  gap: 24px;
+}
+
+.regiao-screen h2 {
+  font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800;
+  color: var(--text); text-align: center;
+}
+.regiao-screen p { font-size: 14px; color: var(--muted); text-align: center; }
+
+.regiao-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%; max-width: 600px;
+}
+
+.regiao-card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  cursor: pointer; transition: all 0.15s;
+  box-shadow: var(--shadow);
+}
+.regiao-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow2); }
+.regiao-card:active { transform: scale(0.96); }
+.regiao-card .icon { font-size: 28px; }
+.regiao-card .nome {
+  font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+  color: var(--text); text-align: center;
+}
+.regiao-card .count { font-size: 11px; color: var(--muted); }
+.regiao-card.loading { opacity: 0.5; pointer-events: none; }
+
+/* ── PROCESSANDO ── */
+.processing-screen {
+  display: none; flex-direction: column; align-items: center;
+  justify-content: center; min-height: calc(100vh - 60px);
+  gap: 20px; padding: 24px;
+}
+.processing-screen.show { display: flex; }
+
+.spinner {
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 4px solid var(--border);
+  border-top-color: var(--accent);
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.processing-screen h3 {
+  font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700;
+}
+.processing-screen p { font-size: 14px; color: var(--muted); text-align: center; max-width: 300px; }
+
+/* ── APP PRINCIPAL ── */
+.app-screen { display: none; }
+.app-screen.show { display: block; }
+
+/* ── ABAS ── */
+.tabs {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; overflow-x: auto;
+  scrollbar-width: none;
+  position: sticky; top: 57px; z-index: 90;
+}
+.tabs::-webkit-scrollbar { display: none; }
+
+.tab {
+  padding: 12px 20px; font-size: 13px; font-weight: 500;
+  color: var(--muted); cursor: pointer; white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s; flex-shrink: 0;
+}
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab:active { background: var(--bg); }
+
+/* ── FILTROS ── */
+.filtros-bar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+}
+
+.filtro-group {
+  display: flex; flex-direction: column; gap: 3px; min-width: 100px;
+}
+.filtro-group label {
+  font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500;
+}
+.filtro-group select {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 10px; font-size: 12px;
+  font-family: 'DM Sans', sans-serif; color: var(--text);
+  cursor: pointer; outline: none;
+}
+.filtro-group select:focus { border-color: var(--accent); }
+
+.filtros-actions {
+  display: flex; gap: 8px; align-items: flex-end; margin-left: auto;
+}
+
+.btn-limpar {
+  padding: 6px 12px; font-size: 12px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--bg);
+  color: var(--muted); cursor: pointer; font-family: 'DM Sans', sans-serif;
+}
+.btn-limpar:active { background: var(--border); }
+
+/* ── CONTAGEM ── */
+.contagem-bar {
+  padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.contagem-bar span { font-size: 13px; color: var(--muted); }
+.contagem-bar strong { color: var(--text); }
+
+/* ── GRID DE CARDS ── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 0 12px 24px;
+}
+
+@media (max-width: 900px) { .cards-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 600px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* ── PROJETO HEADER no grid ── */
+.projeto-header {
+  grid-column: 1/-1;
+  font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;
+  color: var(--text); padding: 16px 0 4px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 4px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.projeto-header .proj-count {
+  font-size: 12px; color: var(--muted); font-family: 'DM Sans', sans-serif; font-weight: 400;
+}
+
+/* ── CARD DE UNIDADE ── */
+.unit-card {
+  background: var(--surface);
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  padding: 12px;
+  box-shadow: var(--shadow);
+  transition: transform 0.15s, box-shadow 0.15s;
+  position: relative; overflow: hidden;
+}
+.unit-card:active { transform: scale(0.97); }
+
+.unit-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--tipo-color);
+}
+
+.unit-card .tipo-badge {
+  position: absolute; top: 10px; right: 10px;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 7px; border-radius: 20px;
+  background: var(--tipo-bg); color: var(--tipo-color);
+}
+
+.unit-card .unidade-num {
+  font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800;
+  color: var(--text); line-height: 1; margin-bottom: 4px; margin-top: 4px;
+}
+
+.unit-card .torre-andar {
+  font-size: 11px; color: var(--muted); margin-bottom: 10px;
+}
+
+.unit-card .dados {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 6px; margin-bottom: 10px;
+}
+.unit-card .dado { display: flex; flex-direction: column; gap: 1px; }
+.unit-card .dado-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+.unit-card .dado-val { font-size: 12px; font-weight: 500; color: var(--text); }
+
+.unit-card .valor {
+  font-size: 14px; font-weight: 700; color: var(--text);
+  border-top: 1px solid var(--border); padding-top: 8px; margin-top: 4px;
+}
+.unit-card .valor-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+
+/* ── ESPELHO DE VENDAS ── */
+.espelho-container { padding: 16px; }
+
+.espelho-legenda {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 20px;
+  background: var(--surface);
+  padding: 12px 16px; border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.leg-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.leg-dot { width: 14px; height: 14px; border-radius: 4px; flex-shrink: 0; }
+
+.torre-bloco {
+  background: var(--surface);
+  border-radius: 16px; border: 1px solid var(--border);
+  padding: 16px; margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+.torre-titulo {
+  font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;
+  margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
+}
+.torre-titulo span { font-size: 16px; }
+
+.espelho-table { width: 100%; border-collapse: collapse; font-size: 11px; overflow-x: auto; display: block; }
+.espelho-table th {
+  background: var(--bg); padding: 6px 8px;
+  font-weight: 600; color: var(--muted); text-align: center;
+  border: 1px solid var(--border); white-space: nowrap;
+  font-size: 10px;
+}
+.espelho-table td {
+  padding: 5px 6px; text-align: center;
+  border: 1px solid var(--border); font-size: 11px; font-weight: 500;
+  min-width: 44px; cursor: default;
+}
+.espelho-table td.vazia { background: #f8f8fa; color: var(--border); }
+.espelho-table td.his1  { background: var(--his1-bg); color: var(--his1); }
+.espelho-table td.his2  { background: var(--his2-bg); color: #b45309; }
+.espelho-table td.hmp   { background: var(--hmp-bg);  color: var(--hmp); }
+.espelho-table td.r2v   { background: var(--r2v-bg);  color: var(--r2v); }
+.espelho-table td.andar { background: var(--bg); color: var(--muted); font-weight: 600; font-size: 10px; }
+
+/* ── INFORMAÇÕES DO PROJETO ── */
+.info-container { padding: 16px; }
+
+.info-select {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 10px 14px; font-size: 14px;
+  font-family: 'DM Sans', sans-serif; color: var(--text);
+  width: 100%; margin-bottom: 16px; outline: none;
+}
+.info-select:focus { border-color: var(--accent); }
+
+.info-cards {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 10px; margin-bottom: 20px;
+}
+@media (min-width: 600px) { .info-cards { grid-template-columns: repeat(4, 1fr); } }
+
+.info-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px; padding: 14px;
+  box-shadow: var(--shadow);
+}
+.info-card .ic-label {
+  font-size: 10px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.5px; font-weight: 500; margin-bottom: 6px;
+}
+.info-card .ic-val {
+  font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--text);
+}
+
+.tipos-section h3 {
+  font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700;
+  margin-bottom: 12px; color: var(--text);
+}
+.tipos-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+@media (min-width: 600px) { .tipos-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.tipo-card {
+  border-radius: 14px; padding: 14px;
+  border: 1.5px solid var(--border);
+}
+.tipo-card.his1 { background: var(--his1-bg); border-color: var(--his1); }
+.tipo-card.his2 { background: var(--his2-bg); border-color: var(--his2); }
+.tipo-card.hmp  { background: var(--hmp-bg);  border-color: var(--hmp); }
+.tipo-card.r2v  { background: var(--r2v-bg);  border-color: var(--r2v); }
+
+.tipo-card .tc-badge {
+  font-size: 12px; font-weight: 700; margin-bottom: 6px;
+}
+.tipo-card.his1 .tc-badge { color: var(--his1); }
+.tipo-card.his2 .tc-badge { color: #b45309; }
+.tipo-card.hmp  .tc-badge { color: var(--hmp); }
+.tipo-card.r2v  .tc-badge { color: var(--r2v); }
+
+.tipo-card .tc-info { font-size: 11px; color: var(--muted); line-height: 1.6; }
+.tipo-card .tc-count { font-size: 20px; font-weight: 700; color: var(--text); margin-top: 6px; }
+
+/* ── IMPLANTAÇÃO ── */
+.implant-container { padding: 16px; }
+.implant-select {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 10px 14px; font-size: 14px;
+  font-family: 'DM Sans', sans-serif; color: var(--text);
+  width: 100%; margin-bottom: 16px; outline: none;
+}
+
+.implant-upload {
+  background: var(--surface); border: 2px dashed var(--border);
+  border-radius: 16px; padding: 32px;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  cursor: pointer; transition: border-color 0.2s;
+  margin-bottom: 16px;
+}
+.implant-upload:hover { border-color: var(--accent); }
+.implant-upload .upload-icon { font-size: 40px; }
+.implant-upload p { font-size: 14px; color: var(--muted); text-align: center; }
+.implant-upload input { display: none; }
+
+.implant-img-container { display: none; }
+.implant-img-container.show { display: block; }
+.implant-img-container img {
+  width: 100%; border-radius: 12px;
+  border: 1px solid var(--border); box-shadow: var(--shadow);
+}
+.btn-remover {
+  margin-top: 10px; padding: 8px 16px;
+  background: #fef2f2; color: var(--his1);
+  border: 1px solid var(--his1); border-radius: 8px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer;
+}
+
+/* ── EMPTY / ERROR ── */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 48px 24px; gap: 12px; text-align: center;
+}
+.empty-state .icon { font-size: 40px; }
+.empty-state h3 { font-family: 'Syne', sans-serif; font-size: 18px; }
+.empty-state p { font-size: 13px; color: var(--muted); }
+
+/* ── SKELETON ── */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg) 25%, var(--border) 50%, var(--bg) 75%);
+  background-size: 200% 100%; animation: shimmer 1.4s infinite;
+  border-radius: 8px;
+}
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: var(--text); color: #fff;
+  padding: 10px 22px; border-radius: 30px; font-size: 13px;
+  opacity: 0; transition: all 0.28s; pointer-events: none;
+  white-space: nowrap; z-index: 500; box-shadow: var(--shadow2);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── REGIAO BADGE ── */
+.regiao-badge {
+  font-size: 11px; padding: 3px 10px; border-radius: 20px;
+  font-weight: 600; background: rgba(59,124,244,0.1); color: var(--accent);
+  border: 1px solid rgba(59,124,244,0.3);
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <h1>🏢 <span>Tabelas</span> de Vendas</h1>
+  <div class="topbar-right">
+    <span class="regiao-badge" id="regiaoAtual" style="display:none"></span>
+    <button class="btn btn-ghost" id="btnTrocarRegiao" style="display:none" onclick="voltarRegioes()">↩ Região</button>
+    <button class="btn btn-primary" id="btnAtualizar" style="display:none" onclick="atualizarDados()">↻ Atualizar</button>
+  </div>
+</div>
+
+<!-- TELA REGIÕES -->
+<div class="regiao-screen" id="regiaoScreen">
+  <h2>Selecione a Região</h2>
+  <p>Os projetos disponíveis com tabela de vendas serão carregados</p>
+  <div class="regiao-grid" id="regiaoGrid">
+    <!-- Regiões carregadas dinamicamente -->
+    <div style="grid-column:1/-1; text-align:center; color:var(--muted); padding:20px;">
+      <div class="spinner" style="margin:0 auto 12px"></div>
+      Carregando regiões...
+    </div>
+  </div>
+</div>
+
+<!-- TELA PROCESSANDO -->
+<div class="processing-screen" id="processingScreen">
+  <div class="spinner"></div>
+  <h3 id="processingTitle">Processando...</h3>
+  <p id="processingMsg">Lendo as tabelas de vendas. Aguarde alguns minutos.</p>
+</div>
+
+<!-- APP PRINCIPAL -->
+<div class="app-screen" id="appScreen">
+
+  <!-- ABAS -->
+  <div class="tabs" id="tabsBar">
+    <div class="tab active" onclick="mudarAba('busca')">🔍 Busca & Filtros</div>
+    <div class="tab" id="tabEspelho" onclick="mudarAba('espelho')" style="display:none">📋 Espelho de Vendas</div>
+    <div class="tab" onclick="mudarAba('info')">ℹ️ Informações</div>
+    <div class="tab" onclick="mudarAba('implant')">🗺️ Implantação</div>
+  </div>
+
+  <!-- ABA: BUSCA & FILTROS -->
+  <div id="abaBusca">
+    <div class="filtros-bar">
+      <div class="filtro-group">
+        <label>Projeto</label>
+        <select id="fProjeto" onchange="aplicarFiltros()">
+          <option value="">Todos</option>
+        </select>
+      </div>
+      <div class="filtro-group">
+        <label>Torre</label>
+        <select id="fTorre" onchange="aplicarFiltros()">
+          <option value="">Todas</option>
+        </select>
+      </div>
+      <div class="filtro-group">
+        <label>Dormitórios</label>
+        <select id="fDorms" onchange="aplicarFiltros()">
+          <option value="">Todos</option>
+        </select>
+      </div>
+      <div class="filtro-group">
+        <label>Tipo / Programa</label>
+        <select id="fTipo" onchange="aplicarFiltros()">
+          <option value="">Todos</option>
+        </select>
+      </div>
+      <div class="filtro-group">
+        <label>Andar</label>
+        <select id="fAndar" onchange="aplicarFiltros()">
+          <option value="">Todos</option>
+        </select>
+      </div>
+      <div class="filtro-group">
+        <label>Preço até</label>
+        <select id="fPreco" onchange="aplicarFiltros()">
+          <option value="">Qualquer</option>
+          <option value="250000">R$ 250.000</option>
+          <option value="300000">R$ 300.000</option>
+          <option value="350000">R$ 350.000</option>
+          <option value="400000">R$ 400.000</option>
+          <option value="500000">R$ 500.000</option>
+        </select>
+      </div>
+      <div class="filtros-actions">
+        <button class="btn-limpar" onclick="limparFiltros()">✕ Limpar</button>
+      </div>
+    </div>
+
+    <div class="contagem-bar">
+      <span>Mostrando <strong id="contagemNum">0</strong> unidades</span>
+    </div>
+
+    <div class="cards-grid" id="cardsGrid"></div>
+  </div>
+
+  <!-- ABA: ESPELHO DE VENDAS -->
+  <div id="abaEspelho" style="display:none">
+    <div class="espelho-container">
+      <div class="filtros-bar" style="position:static">
+        <div class="filtro-group" style="flex:1">
+          <label>Selecione o Projeto</label>
+          <select id="espelhoProjeto" onchange="renderEspelho()">
+            <option value="">-- Selecione --</option>
+          </select>
+        </div>
+      </div>
+      <div id="espelhoContent">
+        <div class="empty-state">
+          <div class="icon">📋</div>
+          <h3>Selecione um projeto</h3>
+          <p>Escolha um projeto para ver o espelho de vendas</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA: INFORMAÇÕES -->
+  <div id="abaInfo" style="display:none">
+    <div class="info-container">
+      <select class="info-select" id="infoProjeto" onchange="renderInfo()">
+        <option value="">-- Selecione um projeto --</option>
+      </select>
+      <div id="infoContent">
+        <div class="empty-state">
+          <div class="icon">ℹ️</div>
+          <h3>Selecione um projeto</h3>
+          <p>Escolha um projeto para ver as informações</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA: IMPLANTAÇÃO -->
+  <div id="abaImplant" style="display:none">
+    <div class="implant-container">
+      <select class="implant-select" id="implantProjeto" onchange="renderImplant()">
+        <option value="">-- Selecione um projeto --</option>
+      </select>
+      <div id="implantContent">
+        <div class="empty-state">
+          <div class="icon">🗺️</div>
+          <h3>Selecione um projeto</h3>
+          <p>Escolha um projeto para gerenciar a implantação</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbygKUj8WpGjz6kOW5I0pRRz2NlUrxu35daes8xjL5hNIkWnSTJz9GZkPEYwGiFG_cRf/exec';
+
+const REGIOES_ICONES = {
+  'NORTE':'🧭', 'SUL':'🌅', 'LESTE':'☀️',
+  'OESTE':'🌇', 'CENTRO':'🏙️', 'GRANDE SP':'🗺️'
+};
+
+const TIPO_CONFIG = {
+  HIS1: { color: 'var(--his1)', bg: 'var(--his1-bg)', cls: 'his1' },
+  HIS2: { color: 'var(--his2)', bg: 'var(--his2-bg)', cls: 'his2' },
+  HMP:  { color: 'var(--hmp)',  bg: 'var(--hmp-bg)',  cls: 'hmp'  },
+  R2V:  { color: 'var(--r2v)', bg: 'var(--r2v-bg)',  cls: 'r2v'  },
+};
+
+let todosUnidades = [];
+let todosInfos    = [];
+let meta          = {};
+let regiaoAtiva   = '';
+let abaAtiva      = 'busca';
+let implantacoes  = JSON.parse(localStorage.getItem('implantacoes') || '{}');
+
+// ── INIT ─────────────────────────────────────────────────
+carregarRegioes();
+
+function carregarRegioes() {
+  jsonp(WEB_APP_URL + '?acao=regioes', '_cbRegioes');
+}
+
+window._cbRegioes = function(data) {
+  const grid = document.getElementById('regiaoGrid');
+  if (!data.ok || !data.regioes) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--his1)">Erro ao carregar regiões</div>';
+    return;
+  }
+  grid.innerHTML = data.regioes.map(r => `
+    <div class="regiao-card" onclick="selecionarRegiao('${r.nome}')">
+      <div class="icon">${REGIOES_ICONES[r.nome] || '📍'}</div>
+      <div class="nome">${r.nome}</div>
+      <div class="count">${r.total} projeto${r.total !== 1 ? 's' : ''}</div>
+    </div>
+  `).join('');
+};
+
+// ── SELECIONAR REGIÃO ─────────────────────────────────────
+function selecionarRegiao(regiao) {
+  regiaoAtiva = regiao;
+  // Verifica se já tem dados para essa região
+  mostrarProcessando(`Carregando ${regiao}...`, 'Verificando dados existentes...');
+  jsonp(WEB_APP_URL + '?acao=dados', '_cbVerificar');
+}
+
+window._cbVerificar = function(data) {
+  if (data.ok && data.unidades && data.unidades.length > 0) {
+    // Tem dados — usa direto
+    carregarDados(data);
+  } else {
+    // Sem dados — extrai
+    extrairRegiao();
+  }
+};
+
+function extrairRegiao() {
+  mostrarProcessando(
+    `Processando ${regiaoAtiva}`,
+    'Lendo as tabelas de vendas em PDF. Isso pode levar alguns minutos...'
+  );
+  jsonp(`${WEB_APP_URL}?acao=extrair&regiao=${encodeURIComponent(regiaoAtiva)}`, '_cbExtrair', 180000);
+}
+
+window._cbExtrair = function(data) {
+  if (!data.ok) {
+    esconderProcessando();
+    toast('Erro: ' + (data.msg || 'Falha na extração'));
+    return;
+  }
+  toast(`✅ ${data.unidades} unidades extraídas!`);
+  // Agora busca os dados
+  jsonp(WEB_APP_URL + '?acao=dados', '_cbDados');
+};
+
+window._cbDados = function(data) {
+  if (!data.ok) {
+    esconderProcessando();
+    toast('Erro ao carregar dados');
+    return;
+  }
+  carregarDados(data);
+};
+
+function carregarDados(data) {
+  todosUnidades = data.unidades || [];
+  todosInfos    = data.infos    || [];
+  meta          = data.meta     || {};
+
+  popularFiltros();
+  popularSelects();
+  aplicarFiltros();
+  mostrarApp();
+}
+
+// ── UI ────────────────────────────────────────────────────
+function mostrarProcessando(titulo, msg) {
+  document.getElementById('regiaoScreen').style.display     = 'none';
+  document.getElementById('processingScreen').classList.add('show');
+  document.getElementById('appScreen').classList.remove('show');
+  document.getElementById('processingTitle').textContent = titulo;
+  document.getElementById('processingMsg').textContent   = msg;
+}
+
+function esconderProcessando() {
+  document.getElementById('processingScreen').classList.remove('show');
+  document.getElementById('regiaoScreen').style.display = 'flex';
+}
+
+function mostrarApp() {
+  document.getElementById('processingScreen').classList.remove('show');
+  document.getElementById('regiaoScreen').style.display = 'none';
+  document.getElementById('appScreen').classList.add('show');
+  document.getElementById('regiaoAtual').textContent = regiaoAtiva;
+  document.getElementById('regiaoAtual').style.display = '';
+  document.getElementById('btnTrocarRegiao').style.display = '';
+  document.getElementById('btnAtualizar').style.display = '';
+}
+
+function voltarRegioes() {
+  document.getElementById('appScreen').classList.remove('show');
+  document.getElementById('regiaoScreen').style.display = 'flex';
+  document.getElementById('regiaoAtual').style.display = 'none';
+  document.getElementById('btnTrocarRegiao').style.display = 'none';
+  document.getElementById('btnAtualizar').style.display = 'none';
+  regiaoAtiva = '';
+}
+
+function atualizarDados() {
+  if (!regiaoAtiva) return;
+  extrairRegiao();
+}
+
+// ── FILTROS ───────────────────────────────────────────────
+function popularFiltros() {
+  const sel = (id, arr, fmt) => {
+    const el = document.getElementById(id);
+    const val = el.value;
+    el.innerHTML = `<option value="">Todos</option>` +
+      arr.map(v => `<option value="${v}">${fmt ? fmt(v) : v}</option>`).join('');
+    if (val) el.value = val;
+  };
+
+  sel('fProjeto', meta.projetos || []);
+  sel('fTorre',   meta.torres   || []);
+  sel('fDorms',   meta.dormitorios || [], d => d + ' dorm' + (d !== 1 ? 's' : ''));
+  sel('fTipo',    meta.tipos    || []);
+  sel('fAndar',   meta.andares  || []);
+}
+
+function popularSelects() {
+  const projetos = meta.projetos || [];
+  const opts = projetos.map(p => `<option value="${p}">${p}</option>`).join('');
+
+  ['espelhoProjeto', 'infoProjeto', 'implantProjeto'].forEach(id => {
+    document.getElementById(id).innerHTML =
+      `<option value="">-- Selecione --</option>` + opts;
+  });
+}
+
+function aplicarFiltros() {
+  const fProjeto = document.getElementById('fProjeto').value;
+  const fTorre   = document.getElementById('fTorre').value;
+  const fDorms   = document.getElementById('fDorms').value;
+  const fTipo    = document.getElementById('fTipo').value;
+  const fAndar   = document.getElementById('fAndar').value;
+  const fPreco   = document.getElementById('fPreco').value;
+
+  // Mostra espelho só se projeto selecionado
+  document.getElementById('tabEspelho').style.display = fProjeto ? '' : 'none';
+
+  let filtradas = todosUnidades.filter(u => {
+    if (fProjeto && u.projeto !== fProjeto) return false;
+    if (fTorre   && u.torre   !== fTorre)   return false;
+    if (fDorms   && String(u.dorms) !== fDorms) return false;
+    if (fTipo    && u.tipo    !== fTipo)    return false;
+    if (fAndar   && String(u.andar) !== fAndar) return false;
+    if (fPreco   && u.valor > parseFloat(fPreco)) return false;
+    return true;
+  });
+
+  document.getElementById('contagemNum').textContent = filtradas.length;
+  renderCards(filtradas, !fProjeto);
+}
+
+function limparFiltros() {
+  ['fProjeto','fTorre','fDorms','fTipo','fAndar','fPreco'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  aplicarFiltros();
+}
+
+// ── RENDER CARDS ─────────────────────────────────────────
+function renderCards(unidades, agrupar) {
+  const grid = document.getElementById('cardsGrid');
+
+  if (unidades.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <div class="icon">🔍</div>
+        <h3>Nenhuma unidade encontrada</h3>
+        <p>Tente ajustar os filtros</p>
+      </div>`;
+    return;
+  }
+
+  let html = '';
+
+  if (agrupar) {
+    // Agrupa por projeto
+    const porProjeto = {};
+    unidades.forEach(u => {
+      if (!porProjeto[u.projeto]) porProjeto[u.projeto] = [];
+      porProjeto[u.projeto].push(u);
+    });
+
+    Object.entries(porProjeto).forEach(([proj, units]) => {
+      html += `
+        <div class="projeto-header">
+          <span>${proj}</span>
+          <span class="proj-count">${units.length} unidade${units.length !== 1 ? 's' : ''}</span>
+        </div>`;
+      html += units.map(u => cardHTML(u)).join('');
+    });
+  } else {
+    html = unidades.map(u => cardHTML(u)).join('');
+  }
+
+  grid.innerHTML = html;
+}
+
+function cardHTML(u) {
+  const tc = TIPO_CONFIG[u.tipo] || TIPO_CONFIG['HMP'];
+  const valor = u.valor > 0
+    ? 'R$ ' + u.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })
+    : 'Consultar';
+
+  return `
+    <div class="unit-card" style="--tipo-color:${tc.color};--tipo-bg:${tc.bg}">
+      <div class="tipo-badge">${u.tipo}</div>
+      <div class="unidade-num">${u.unidade}</div>
+      <div class="torre-andar">${u.torre} · ${u.andar === '0' ? 'Térreo' : u.andar + (u.andar !== 'Térreo' ? 'º Andar' : '')}</div>
+      <div class="dados">
+        <div class="dado">
+          <span class="dado-label">Dormitórios</span>
+          <span class="dado-val">${u.dorms} dorm${u.dorms !== 1 ? 's' : ''}</span>
+        </div>
+        <div class="dado">
+          <span class="dado-label">Área</span>
+          <span class="dado-val">${u.area ? u.area.toFixed(2) + ' m²' : '-'}</span>
+        </div>
+        <div class="dado">
+          <span class="dado-label">Vagas</span>
+          <span class="dado-val">${u.vagas > 0 ? u.vagas : 'Sem vaga'}</span>
+        </div>
+        <div class="dado">
+          <span class="dado-label">Tipo</span>
+          <span class="dado-val" style="color:${tc.color}">${u.tipo}</span>
+        </div>
+      </div>
+      <div class="valor">
+        <div class="valor-label">Valor</div>
+        ${valor}
+      </div>
+    </div>`;
+}
+
+// ── ESPELHO DE VENDAS ─────────────────────────────────────
+function renderEspelho() {
+  const proj = document.getElementById('espelhoProjeto').value;
+  const content = document.getElementById('espelhoContent');
+
+  if (!proj) {
+    content.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">📋</div>
+        <h3>Selecione um projeto</h3>
+        <p>Escolha um projeto para ver o espelho de vendas</p>
+      </div>`;
+    return;
+  }
+
+  const unidades = todosUnidades.filter(u => u.projeto === proj);
+  if (unidades.length === 0) {
+    content.innerHTML = `<div class="empty-state"><div class="icon">📋</div><h3>Sem unidades</h3></div>`;
+    return;
+  }
+
+  // Agrupa por torre
+  const porTorre = {};
+  unidades.forEach(u => {
+    if (!porTorre[u.torre]) porTorre[u.torre] = [];
+    porTorre[u.torre].push(u);
+  });
+
+  let html = `
+    <div class="espelho-legenda">
+      <div class="leg-item"><div class="leg-dot" style="background:var(--his1)"></div> HIS1</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--his2)"></div> HIS2</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--hmp)"></div> HMP</div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--r2v)"></div> R2V</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#f1f1f4;border:1px solid var(--border)"></div> Vazio</div>
+    </div>`;
+
+  Object.entries(porTorre).sort().forEach(([torre, units]) => {
+    // Mapa: andar → unidade → tipo
+    const mapaAndar = {};
+    const todasUnids = new Set();
+
+    units.forEach(u => {
+      if (!mapaAndar[u.andar]) mapaAndar[u.andar] = {};
+      mapaAndar[u.andar][u.unidade] = u.tipo;
+      todasUnids.add(u.unidade);
+    });
+
+    // Ordenar andares (Térreo primeiro, depois numérico desc)
+    const andares = Object.keys(mapaAndar).sort((a, b) => {
+      if (a === 'Térreo') return 1;
+      if (b === 'Térreo') return -1;
+      return parseInt(b) - parseInt(a);
+    });
+
+    // Colunas = unidades únicas ordenadas
+    const colunas = [...todasUnids].sort((a, b) => {
+      const na = parseInt(String(a).replace(/\D/g,''));
+      const nb = parseInt(String(b).replace(/\D/g,''));
+      return na - nb;
+    }).slice(0, 20); // máx 20 colunas
+
+    html += `
+      <div class="torre-bloco">
+        <div class="torre-titulo"><span>🏗️</span> ${torre}</div>
+        <div style="overflow-x:auto">
+          <table class="espelho-table">
+            <thead>
+              <tr>
+                <th>ANDAR</th>
+                ${colunas.map(c => `<th>${c}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${andares.map(andar => `
+                <tr>
+                  <td class="andar">${andar === '0' ? 'Tér.' : andar}</td>
+                  ${colunas.map(col => {
+                    const tipo = mapaAndar[andar]?.[col];
+                    if (!tipo) return `<td class="vazia">-</td>`;
+                    const cls = tipo.toLowerCase();
+                    return `<td class="${cls}" title="${tipo}">${col}</td>`;
+                  }).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+  });
+
+  content.innerHTML = html;
+}
+
+// ── INFORMAÇÕES DO PROJETO ────────────────────────────────
+function renderInfo() {
+  const proj = document.getElementById('infoProjeto').value;
+  const content = document.getElementById('infoContent');
+
+  if (!proj) {
+    content.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">ℹ️</div>
+        <h3>Selecione um projeto</h3>
+        <p>Escolha um projeto para ver as informações</p>
+      </div>`;
+    return;
+  }
+
+  const info = todosInfos.find(i => i.projeto === proj) || {};
+  const units = todosUnidades.filter(u => u.projeto === proj);
+
+  // Contagem por tipo
+  const porTipo = {};
+  units.forEach(u => { porTipo[u.tipo] = (porTipo[u.tipo] || 0) + 1; });
+
+  // Preço mín/máx por tipo
+  const precos = {};
+  units.filter(u => u.valor > 0).forEach(u => {
+    if (!precos[u.tipo]) precos[u.tipo] = { min: u.valor, max: u.valor };
+    precos[u.tipo].min = Math.min(precos[u.tipo].min, u.valor);
+    precos[u.tipo].max = Math.max(precos[u.tipo].max, u.valor);
+  });
+
+  const fmt = v => v ? 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '-';
+
+  content.innerHTML = `
+    <div class="info-cards">
+      <div class="info-card">
+        <div class="ic-label">Empreendimento</div>
+        <div class="ic-val" style="font-size:13px">${info.projeto || proj}</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-label">Lançamento</div>
+        <div class="ic-val">${info.lancamento || '-'}</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-label">Entrega Prevista</div>
+        <div class="ic-val">${info.entrega || '-'}</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-label">Torres</div>
+        <div class="ic-val">${info.torres || '-'}</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-label">Total de Unidades</div>
+        <div class="ic-val">${info.totalUnid || '-'}</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-label">Disponíveis</div>
+        <div class="ic-val">${units.length}</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-label">Área do Terreno</div>
+        <div class="ic-val" style="font-size:13px">${info.areaTerreno || '-'}</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-label">Bairro</div>
+        <div class="ic-val" style="font-size:13px">${info.bairro || '-'}</div>
+      </div>
+    </div>
+
+    <div class="tipos-section">
+      <h3>Tipos de Unidade Disponíveis</h3>
+      <div class="tipos-grid">
+        ${Object.entries(TIPO_CONFIG).map(([tipo, cfg]) => {
+          const count = porTipo[tipo] || 0;
+          const p = precos[tipo];
+          return `
+            <div class="tipo-card ${cfg.cls}">
+              <div class="tc-badge">${tipo}</div>
+              <div class="tc-count">${count} unid.</div>
+              <div class="tc-info">
+                ${p ? `De ${fmt(p.min)}<br>Até ${fmt(p.max)}` : 'Sem disponibilidade'}
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+// ── IMPLANTAÇÃO ───────────────────────────────────────────
+function renderImplant() {
+  const proj = document.getElementById('implantProjeto').value;
+  const content = document.getElementById('implantContent');
+
+  if (!proj) {
+    content.innerHTML = `
+      <div class="empty-state">
+        <div class="icon">🗺️</div>
+        <h3>Selecione um projeto</h3>
+        <p>Escolha um projeto para gerenciar a implantação</p>
+      </div>`;
+    return;
+  }
+
+  const imgData = implantacoes[proj];
+
+  content.innerHTML = `
+    <div class="implant-upload" onclick="document.getElementById('fileInput').click()">
+      <input type="file" id="fileInput" accept="image/*" onchange="uploadImplant('${proj}', this)">
+      <div class="upload-icon">📎</div>
+      <p>${imgData ? 'Clique para substituir a implantação' : 'Toque para selecionar a imagem da implantação'}</p>
+    </div>
+    <div class="implant-img-container ${imgData ? 'show' : ''}">
+      ${imgData ? `
+        <img src="${imgData}" alt="Implantação ${proj}">
+        <button class="btn-remover" onclick="removerImplant('${proj}')">🗑️ Remover implantação</button>
+      ` : ''}
+    </div>`;
+}
+
+function uploadImplant(proj, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    implantacoes[proj] = e.target.result;
+    localStorage.setItem('implantacoes', JSON.stringify(implantacoes));
+    renderImplant();
+    toast('Implantação salva!');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removerImplant(proj) {
+  delete implantacoes[proj];
+  localStorage.setItem('implantacoes', JSON.stringify(implantacoes));
+  renderImplant();
+  toast('Implantação removida');
+}
+
+// ── ABAS ─────────────────────────────────────────────────
+function mudarAba(aba) {
+  abaAtiva = aba;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  ['abaBusca','abaEspelho','abaInfo','abaImplant'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
+  document.getElementById('aba' + aba.charAt(0).toUpperCase() + aba.slice(1)).style.display = '';
+}
+
+// ── JSONP ─────────────────────────────────────────────────
+function jsonp(url, cb, timeout = 30000) {
+  const old = document.getElementById('_jsonp');
+  if (old) old.remove();
+
+  const timer = setTimeout(() => {
+    toast('Tempo esgotado. Tente novamente.');
+    esconderProcessando();
+  }, timeout);
+
+  window[cb] = function(data) {
+    clearTimeout(timer);
+    window[cb] = null;
+    const s = document.getElementById('_jsonp');
+    if (s) s.remove();
+    try { eval(cb + '_handler')(data); } catch(e) {}
+  };
+
+  // Cria handlers dinamicamente
+  window[cb + '_handler'] = window[cb];
+  window[cb] = function(data) {
+    clearTimeout(timer);
+    const s = document.getElementById('_jsonp');
+    if (s) s.remove();
+    // Chama o callback correto
+    if (cb === '_cbRegioes')    window._cbRegioes(data);
+    else if (cb === '_cbVerificar') window._cbVerificar(data);
+    else if (cb === '_cbExtrair')   window._cbExtrair(data);
+    else if (cb === '_cbDados')     window._cbDados(data);
+  };
+
+  const s = document.createElement('script');
+  s.id  = '_jsonp';
+  s.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cb;
+  document.head.appendChild(s);
+}
+
+// ── TOAST ─────────────────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
