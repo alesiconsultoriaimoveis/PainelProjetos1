@@ -99,7 +99,6 @@ body {
   color: var(--text); text-align: center;
 }
 .regiao-card .count { font-size: 11px; color: var(--muted); }
-.regiao-card.loading { opacity: 0.5; pointer-events: none; }
 
 /* ── PROCESSANDO ── */
 .processing-screen {
@@ -403,14 +402,6 @@ body {
 .empty-state h3 { font-family: 'Syne', sans-serif; font-size: 18px; }
 .empty-state p { font-size: 13px; color: var(--muted); }
 
-/* ── SKELETON ── */
-.skeleton {
-  background: linear-gradient(90deg, var(--bg) 25%, var(--border) 50%, var(--bg) 75%);
-  background-size: 200% 100%; animation: shimmer 1.4s infinite;
-  border-radius: 8px;
-}
-@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
 /* ── TOAST ── */
 .toast {
   position: fixed; bottom: 24px; left: 50%;
@@ -447,7 +438,6 @@ body {
   <h2>Selecione a Região</h2>
   <p>Os projetos disponíveis com tabela de vendas serão carregados</p>
   <div class="regiao-grid" id="regiaoGrid">
-    <!-- Regiões carregadas dinamicamente -->
     <div style="grid-column:1/-1; text-align:center; color:var(--muted); padding:20px;">
       <div class="spinner" style="margin:0 auto 12px"></div>
       Carregando regiões...
@@ -467,10 +457,10 @@ body {
 
   <!-- ABAS -->
   <div class="tabs" id="tabsBar">
-    <div class="tab active" onclick="mudarAba('busca')">🔍 Busca & Filtros</div>
-    <div class="tab" id="tabEspelho" onclick="mudarAba('espelho')" style="display:none">📋 Espelho de Vendas</div>
-    <div class="tab" onclick="mudarAba('info')">ℹ️ Informações</div>
-    <div class="tab" onclick="mudarAba('implant')">🗺️ Implantação</div>
+    <div class="tab active" onclick="mudarAba('busca', this)">🔍 Busca & Filtros</div>
+    <div class="tab" id="tabEspelho" onclick="mudarAba('espelho', this)" style="display:none">📋 Espelho de Vendas</div>
+    <div class="tab" onclick="mudarAba('info', this)">ℹ️ Informações</div>
+    <div class="tab" onclick="mudarAba('implant', this)">🗺️ Implantação</div>
   </div>
 
   <!-- ABA: BUSCA & FILTROS -->
@@ -615,10 +605,11 @@ function carregarRegioes() {
   jsonp(WEB_APP_URL + '?acao=regioes', '_cbRegioes');
 }
 
-window._cbRegioes = function(data) {
+// ── CALLBACKS ────────────────────────────────────────────
+function _cbRegioes(data) {
   const grid = document.getElementById('regiaoGrid');
   if (!data.ok || !data.regioes) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--his1)">Erro ao carregar regiões</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--his1)">Erro ao carregar regiões. Verifique o Web App.</div>';
     return;
   }
   grid.innerHTML = data.regioes.map(r => `
@@ -628,53 +619,53 @@ window._cbRegioes = function(data) {
       <div class="count">${r.total} projeto${r.total !== 1 ? 's' : ''}</div>
     </div>
   `).join('');
-};
-
-// ── SELECIONAR REGIÃO ─────────────────────────────────────
-function selecionarRegiao(regiao) {
-  regiaoAtiva = regiao;
-  // Verifica se já tem dados para essa região
-  mostrarProcessando(`Carregando ${regiao}...`, 'Verificando dados existentes...');
-  jsonp(WEB_APP_URL + '?acao=dados', '_cbVerificar');
 }
 
-window._cbVerificar = function(data) {
+function _cbVerificar(data) {
   if (data.ok && data.unidades && data.unidades.length > 0) {
-    // Tem dados — usa direto
+    // Já tem dados para essa região — usa direto
     carregarDados(data);
   } else {
-    // Sem dados — extrai
+    // Sem dados — dispara extração
     extrairRegiao();
   }
-};
-
-function extrairRegiao() {
-  mostrarProcessando(
-    `Processando ${regiaoAtiva}`,
-    'Lendo as tabelas de vendas em PDF. Isso pode levar alguns minutos...'
-  );
-  jsonp(`${WEB_APP_URL}?acao=extrair&regiao=${encodeURIComponent(regiaoAtiva)}`, '_cbExtrair', 180000);
 }
 
-window._cbExtrair = function(data) {
+function _cbExtrair(data) {
   if (!data.ok) {
     esconderProcessando();
     toast('Erro: ' + (data.msg || 'Falha na extração'));
     return;
   }
   toast(`✅ ${data.unidades} unidades extraídas!`);
-  // Agora busca os dados
-  jsonp(WEB_APP_URL + '?acao=dados', '_cbDados');
-};
+  // Busca os dados recém-extraídos
+  jsonp(`${WEB_APP_URL}?acao=dados&regiao=${encodeURIComponent(regiaoAtiva)}`, '_cbDados');
+}
 
-window._cbDados = function(data) {
+function _cbDados(data) {
   if (!data.ok) {
     esconderProcessando();
-    toast('Erro ao carregar dados');
+    toast('Erro ao carregar dados: ' + (data.msg || ''));
     return;
   }
   carregarDados(data);
-};
+}
+
+// ── SELECIONAR REGIÃO ─────────────────────────────────────
+function selecionarRegiao(regiao) {
+  regiaoAtiva = regiao;
+  mostrarProcessando(`Carregando ${regiao}...`, 'Verificando dados existentes...');
+  // ✅ Passa a região para o backend filtrar corretamente
+  jsonp(`${WEB_APP_URL}?acao=dados&regiao=${encodeURIComponent(regiao)}`, '_cbVerificar');
+}
+
+function extrairRegiao() {
+  mostrarProcessando(
+    `Processando ${regiaoAtiva}`,
+    'Lendo as tabelas de vendas em PDF. Isso pode levar alguns minutos...'
+  );
+  jsonp(`${WEB_APP_URL}?acao=extrair&regiao=${encodeURIComponent(regiaoAtiva)}`, '_cbExtrair', 300000);
+}
 
 function carregarDados(data) {
   todosUnidades = data.unidades || [];
@@ -705,18 +696,18 @@ function mostrarApp() {
   document.getElementById('processingScreen').classList.remove('show');
   document.getElementById('regiaoScreen').style.display = 'none';
   document.getElementById('appScreen').classList.add('show');
-  document.getElementById('regiaoAtual').textContent = regiaoAtiva;
-  document.getElementById('regiaoAtual').style.display = '';
+  document.getElementById('regiaoAtual').textContent    = regiaoAtiva;
+  document.getElementById('regiaoAtual').style.display  = '';
   document.getElementById('btnTrocarRegiao').style.display = '';
-  document.getElementById('btnAtualizar').style.display = '';
+  document.getElementById('btnAtualizar').style.display    = '';
 }
 
 function voltarRegioes() {
   document.getElementById('appScreen').classList.remove('show');
   document.getElementById('regiaoScreen').style.display = 'flex';
-  document.getElementById('regiaoAtual').style.display = 'none';
+  document.getElementById('regiaoAtual').style.display  = 'none';
   document.getElementById('btnTrocarRegiao').style.display = 'none';
-  document.getElementById('btnAtualizar').style.display = 'none';
+  document.getElementById('btnAtualizar').style.display    = 'none';
   regiaoAtiva = '';
 }
 
@@ -728,18 +719,18 @@ function atualizarDados() {
 // ── FILTROS ───────────────────────────────────────────────
 function popularFiltros() {
   const sel = (id, arr, fmt) => {
-    const el = document.getElementById(id);
+    const el  = document.getElementById(id);
     const val = el.value;
     el.innerHTML = `<option value="">Todos</option>` +
       arr.map(v => `<option value="${v}">${fmt ? fmt(v) : v}</option>`).join('');
     if (val) el.value = val;
   };
 
-  sel('fProjeto', meta.projetos || []);
-  sel('fTorre',   meta.torres   || []);
-  sel('fDorms',   meta.dormitorios || [], d => d + ' dorm' + (d !== 1 ? 's' : ''));
-  sel('fTipo',    meta.tipos    || []);
-  sel('fAndar',   meta.andares  || []);
+  sel('fProjeto', meta.projetos     || []);
+  sel('fTorre',   meta.torres       || []);
+  sel('fDorms',   meta.dormitorios  || [], d => d + ' dorm' + (d !== 1 ? 's' : ''));
+  sel('fTipo',    meta.tipos        || []);
+  sel('fAndar',   meta.andares      || []);
 }
 
 function popularSelects() {
@@ -760,16 +751,15 @@ function aplicarFiltros() {
   const fAndar   = document.getElementById('fAndar').value;
   const fPreco   = document.getElementById('fPreco').value;
 
-  // Mostra espelho só se projeto selecionado
   document.getElementById('tabEspelho').style.display = fProjeto ? '' : 'none';
 
   let filtradas = todosUnidades.filter(u => {
-    if (fProjeto && u.projeto !== fProjeto) return false;
-    if (fTorre   && u.torre   !== fTorre)   return false;
-    if (fDorms   && String(u.dorms) !== fDorms) return false;
-    if (fTipo    && u.tipo    !== fTipo)    return false;
-    if (fAndar   && String(u.andar) !== fAndar) return false;
-    if (fPreco   && u.valor > parseFloat(fPreco)) return false;
+    if (fProjeto && u.projeto !== fProjeto)         return false;
+    if (fTorre   && u.torre   !== fTorre)           return false;
+    if (fDorms   && String(u.dorms) !== fDorms)     return false;
+    if (fTipo    && u.tipo    !== fTipo)             return false;
+    if (fAndar   && String(u.andar) !== fAndar)     return false;
+    if (fPreco   && u.valor > parseFloat(fPreco))   return false;
     return true;
   });
 
@@ -801,13 +791,11 @@ function renderCards(unidades, agrupar) {
   let html = '';
 
   if (agrupar) {
-    // Agrupa por projeto
     const porProjeto = {};
     unidades.forEach(u => {
       if (!porProjeto[u.projeto]) porProjeto[u.projeto] = [];
       porProjeto[u.projeto].push(u);
     });
-
     Object.entries(porProjeto).forEach(([proj, units]) => {
       html += `
         <div class="projeto-header">
@@ -824,7 +812,7 @@ function renderCards(unidades, agrupar) {
 }
 
 function cardHTML(u) {
-  const tc = TIPO_CONFIG[u.tipo] || TIPO_CONFIG['HMP'];
+  const tc    = TIPO_CONFIG[u.tipo] || TIPO_CONFIG['HMP'];
   const valor = u.valor > 0
     ? 'R$ ' + u.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })
     : 'Consultar';
@@ -861,7 +849,7 @@ function cardHTML(u) {
 
 // ── ESPELHO DE VENDAS ─────────────────────────────────────
 function renderEspelho() {
-  const proj = document.getElementById('espelhoProjeto').value;
+  const proj    = document.getElementById('espelhoProjeto').value;
   const content = document.getElementById('espelhoContent');
 
   if (!proj) {
@@ -880,7 +868,6 @@ function renderEspelho() {
     return;
   }
 
-  // Agrupa por torre
   const porTorre = {};
   unidades.forEach(u => {
     if (!porTorre[u.torre]) porTorre[u.torre] = [];
@@ -897,8 +884,7 @@ function renderEspelho() {
     </div>`;
 
   Object.entries(porTorre).sort().forEach(([torre, units]) => {
-    // Mapa: andar → unidade → tipo
-    const mapaAndar = {};
+    const mapaAndar  = {};
     const todasUnids = new Set();
 
     units.forEach(u => {
@@ -907,19 +893,17 @@ function renderEspelho() {
       todasUnids.add(u.unidade);
     });
 
-    // Ordenar andares (Térreo primeiro, depois numérico desc)
     const andares = Object.keys(mapaAndar).sort((a, b) => {
       if (a === 'Térreo') return 1;
       if (b === 'Térreo') return -1;
       return parseInt(b) - parseInt(a);
     });
 
-    // Colunas = unidades únicas ordenadas
     const colunas = [...todasUnids].sort((a, b) => {
       const na = parseInt(String(a).replace(/\D/g,''));
       const nb = parseInt(String(b).replace(/\D/g,''));
       return na - nb;
-    }).slice(0, 20); // máx 20 colunas
+    }).slice(0, 20);
 
     html += `
       <div class="torre-bloco">
@@ -955,7 +939,7 @@ function renderEspelho() {
 
 // ── INFORMAÇÕES DO PROJETO ────────────────────────────────
 function renderInfo() {
-  const proj = document.getElementById('infoProjeto').value;
+  const proj    = document.getElementById('infoProjeto').value;
   const content = document.getElementById('infoContent');
 
   if (!proj) {
@@ -968,14 +952,12 @@ function renderInfo() {
     return;
   }
 
-  const info = todosInfos.find(i => i.projeto === proj) || {};
+  const info  = todosInfos.find(i => i.projeto === proj) || {};
   const units = todosUnidades.filter(u => u.projeto === proj);
 
-  // Contagem por tipo
   const porTipo = {};
   units.forEach(u => { porTipo[u.tipo] = (porTipo[u.tipo] || 0) + 1; });
 
-  // Preço mín/máx por tipo
   const precos = {};
   units.filter(u => u.valor > 0).forEach(u => {
     if (!precos[u.tipo]) precos[u.tipo] = { min: u.valor, max: u.valor };
@@ -1026,7 +1008,7 @@ function renderInfo() {
       <div class="tipos-grid">
         ${Object.entries(TIPO_CONFIG).map(([tipo, cfg]) => {
           const count = porTipo[tipo] || 0;
-          const p = precos[tipo];
+          const p     = precos[tipo];
           return `
             <div class="tipo-card ${cfg.cls}">
               <div class="tc-badge">${tipo}</div>
@@ -1042,7 +1024,7 @@ function renderInfo() {
 
 // ── IMPLANTAÇÃO ───────────────────────────────────────────
 function renderImplant() {
-  const proj = document.getElementById('implantProjeto').value;
+  const proj    = document.getElementById('implantProjeto').value;
   const content = document.getElementById('implantContent');
 
   if (!proj) {
@@ -1092,57 +1074,65 @@ function removerImplant(proj) {
 }
 
 // ── ABAS ─────────────────────────────────────────────────
-function mudarAba(aba) {
+function mudarAba(aba, el) {
   abaAtiva = aba;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
+  if (el) el.classList.add('active');
   ['abaBusca','abaEspelho','abaInfo','abaImplant'].forEach(id => {
     document.getElementById(id).style.display = 'none';
   });
   document.getElementById('aba' + aba.charAt(0).toUpperCase() + aba.slice(1)).style.display = '';
 }
 
-// ── JSONP ─────────────────────────────────────────────────
-function jsonp(url, cb, timeout = 30000) {
-  const old = document.getElementById('_jsonp');
+// ── JSONP (versão corrigida) ──────────────────────────────
+function jsonp(url, cb, timeout) {
+  timeout = timeout || 30000;
+
+  // Remove script anterior se existir
+  const old = document.getElementById('_jsonp_script');
   if (old) old.remove();
 
-  const timer = setTimeout(() => {
+  // Limpa callback anterior
+  window[cb] = null;
+
+  const timer = setTimeout(function() {
+    window[cb] = null;
+    const s = document.getElementById('_jsonp_script');
+    if (s) s.remove();
     toast('Tempo esgotado. Tente novamente.');
     esconderProcessando();
   }, timeout);
 
+  // ✅ Define o callback diretamente — sem redirecionamento
   window[cb] = function(data) {
     clearTimeout(timer);
     window[cb] = null;
-    const s = document.getElementById('_jsonp');
+    const s = document.getElementById('_jsonp_script');
     if (s) s.remove();
-    try { eval(cb + '_handler')(data); } catch(e) {}
+    // Despacha para a função correta
+    if      (cb === '_cbRegioes')   _cbRegioes(data);
+    else if (cb === '_cbVerificar') _cbVerificar(data);
+    else if (cb === '_cbExtrair')   _cbExtrair(data);
+    else if (cb === '_cbDados')     _cbDados(data);
   };
 
-  // Cria handlers dinamicamente
-  window[cb + '_handler'] = window[cb];
-  window[cb] = function(data) {
+  const s    = document.createElement('script');
+  s.id       = '_jsonp_script';
+  s.src      = url + (url.includes('?') ? '&' : '?') + 'callback=' + cb;
+  s.onerror  = function() {
     clearTimeout(timer);
-    const s = document.getElementById('_jsonp');
-    if (s) s.remove();
-    // Chama o callback correto
-    if (cb === '_cbRegioes')    window._cbRegioes(data);
-    else if (cb === '_cbVerificar') window._cbVerificar(data);
-    else if (cb === '_cbExtrair')   window._cbExtrair(data);
-    else if (cb === '_cbDados')     window._cbDados(data);
+    window[cb] = null;
+    toast('Erro de conexão com o servidor.');
+    esconderProcessando();
   };
-
-  const s = document.createElement('script');
-  s.id  = '_jsonp';
-  s.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cb;
   document.head.appendChild(s);
 }
 
 // ── TOAST ─────────────────────────────────────────────────
 function toast(msg) {
   const el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('show');
+  el.textContent = msg;
+  el.classList.add('show');
   clearTimeout(el._t);
   el._t = setTimeout(() => el.classList.remove('show'), 2500);
 }
