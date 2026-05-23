@@ -606,7 +606,7 @@ function carregarRegioes() {
 }
 
 // ── CALLBACKS ────────────────────────────────────────────
-function _cbRegioes(data) {
+window._cbRegioes = function(data) {
   const grid = document.getElementById('regiaoGrid');
   if (!data.ok || !data.regioes) {
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--his1)">Erro ao carregar regiões. Verifique o Web App.</div>';
@@ -621,7 +621,7 @@ function _cbRegioes(data) {
   `).join('');
 }
 
-function _cbVerificar(data) {
+window._cbVerificar = function(data) {
   if (data.ok && data.unidades && data.unidades.length > 0) {
     // Já tem dados para essa região — usa direto
     carregarDados(data);
@@ -631,7 +631,7 @@ function _cbVerificar(data) {
   }
 }
 
-function _cbExtrair(data) {
+window._cbExtrair = function(data) {
   if (!data.ok) {
     esconderProcessando();
     toast('Erro: ' + (data.msg || 'Falha na extração'));
@@ -642,7 +642,7 @@ function _cbExtrair(data) {
   jsonp(`${WEB_APP_URL}?acao=dados&regiao=${encodeURIComponent(regiaoAtiva)}`, '_cbDados');
 }
 
-function _cbDados(data) {
+window._cbDados = function(data) {
   if (!data.ok) {
     esconderProcessando();
     toast('Erro ao carregar dados: ' + (data.msg || ''));
