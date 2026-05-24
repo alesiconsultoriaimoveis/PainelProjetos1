@@ -353,7 +353,7 @@ function jsonp(url, cbName, timeout) {
 }
 
 // ── CALLBACKS PRINCIPAIS ──────────────────────────────────
-function _cbR(data){
+window._cbR = function(data){
   var grid=document.getElementById('regiaoGrid');
   if(!data.ok||!data.regioes){
     grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--his1)">Erro ao carregar regiões.</div>';
@@ -371,7 +371,7 @@ function _cbR(data){
   }).join('');
 }
 
-function _cbV(data){
+window._cbV = function(data){
   if(data.ok && data.unidades && data.unidades.length>0){
     carregarDados(data);
   } else {
@@ -379,13 +379,13 @@ function _cbV(data){
   }
 }
 
-function _cbE(data){
+window._cbE = function(data){
   if(!data.ok){ esconderProcessando(); toast('Erro: '+(data.msg||'Falha')); return; }
   toast('✅ '+data.unidades+' unidades extraídas!');
   jsonp(WEB_APP_URL+'?acao=dados&regiao='+encodeURIComponent(regiaoAtiva),'_cbD',120000);
 }
 
-function _cbD(data){
+window._cbD = function(data){
   if(!data.ok){ esconderProcessando(); toast('Erro ao carregar dados'); return; }
   carregarDados(data);
 }
