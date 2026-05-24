@@ -327,15 +327,14 @@ function jsonp(url, cbName, timeout) {
 
   window[cbName] = function(data){
     clearTimeout(timer);
-    window[cbName]=null;
     var s=document.getElementById('_js'); if(s) s.remove();
-    // Despacha
-    if     (cbName==='_cbR') window._cbR(data);
-    else if(cbName==='_cbV') window._cbV(data);
-    else if(cbName==='_cbE') window._cbE(data);
-    else if(cbName==='_cbD') window._cbD(data);
+    window[cbName]=null; // zera APÓS capturar referências
+    // Despacha para o handler correto
+    if     (cbName==='_cbR') { if(window._cbR) window._cbR(data); }
+    else if(cbName==='_cbV') { if(window._cbV) window._cbV(data); }
+    else if(cbName==='_cbE') { if(window._cbE) window._cbE(data); }
+    else if(cbName==='_cbD') { if(window._cbD) window._cbD(data); }
     else {
-      // callback dinâmico de cache — busca no store
       var fn = window['__fn_'+cbName];
       if(fn){ window['__fn_'+cbName]=null; fn(data); }
     }
