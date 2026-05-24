@@ -330,10 +330,10 @@ function jsonp(url, cbName, timeout) {
     window[cbName]=null;
     var s=document.getElementById('_js'); if(s) s.remove();
     // Despacha
-    if     (cbName==='_cbR') _cbR(data);
-    else if(cbName==='_cbV') _cbV(data);
-    else if(cbName==='_cbE') _cbE(data);
-    else if(cbName==='_cbD') _cbD(data);
+    if     (cbName==='_cbR') window._cbR(data);
+    else if(cbName==='_cbV') window._cbV(data);
+    else if(cbName==='_cbE') window._cbE(data);
+    else if(cbName==='_cbD') window._cbD(data);
     else {
       // callback dinâmico de cache — busca no store
       var fn = window['__fn_'+cbName];
