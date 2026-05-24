@@ -462,13 +462,40 @@ function atualizarCacheRegiao(regiao){
       } catch(e){}
       if(statusEl){ statusEl.textContent='✅ atualizado agora · '+(data.meta?data.meta.total:0)+' unidades'; statusEl.className='cache-item-status ok'; }
       toast('✅ '+regiao+' atualizado!');
+      if(btn){ btn.disabled=false; btn.textContent='↻'; }
+      atualizarBadgeGrade(regiao, true);
+      if(atualizandoTudo) proximaAtualiz();
     } else {
-      if(statusEl){ statusEl.textContent='❌ Erro ao carregar'; statusEl.className='cache-item-status'; }
-      toast('Erro em '+regiao);
+      // Região não extraída — dispara extração automática
+      if(statusEl){ statusEl.textContent='⏳ Extraindo PDFs... (pode demorar)'; statusEl.className='cache-item-status'; }
+      toast('⏳ Extraindo '+regiao+'...');
+      var cbEx='_cbEx_'+regiao.replace(/[^a-zA-Z0-9]/g,'_');
+      window[cbEx]=function(exData){ clearJsonpTimer();
+        if(exData.ok){
+          // Agora busca os dados
+          var cbD2='_cbD2_'+regiao.replace(/[^a-zA-Z0-9]/g,'_');
+          window[cbD2]=function(d2){ clearJsonpTimer();
+            if(d2.ok && d2.unidades){
+              try { localStorage.setItem(CACHE_PFX+regiao, JSON.stringify({v:CACHE_VER, ts:Date.now(), data:d2})); } catch(e){}
+              if(statusEl){ statusEl.textContent='✅ extraído · '+(d2.meta?d2.meta.total:0)+' unidades'; statusEl.className='cache-item-status ok'; }
+              toast('✅ '+regiao+' extraído!');
+              atualizarBadgeGrade(regiao, true);
+            } else {
+              if(statusEl){ statusEl.textContent='❌ Erro após extração'; statusEl.className='cache-item-status'; }
+            }
+            if(btn){ btn.disabled=false; btn.textContent='↻'; }
+            if(atualizandoTudo) proximaAtualiz();
+          };
+          jsonp(WEB_APP_URL+'?acao=dados&regiao='+encodeURIComponent(regiao), cbD2, 120000);
+        } else {
+          if(statusEl){ statusEl.textContent='❌ Falha na extração'; statusEl.className='cache-item-status'; }
+          toast('Erro ao extrair '+regiao);
+          if(btn){ btn.disabled=false; btn.textContent='↻'; }
+          if(atualizandoTudo) proximaAtualiz();
+        }
+      };
+      jsonp(WEB_APP_URL+'?acao=extrair&regiao='+encodeURIComponent(regiao), cbEx, 300000);
     }
-    if(btn){ btn.disabled=false; btn.textContent='↻'; }
-    atualizarBadgeGrade(regiao, data.ok);
-    if(atualizandoTudo) proximaAtualiz();
   };
 
   jsonp(WEB_APP_URL+'?acao=dados&regiao='+encodeURIComponent(regiao), cbName, 120000);
