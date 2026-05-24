@@ -1234,14 +1234,15 @@ function jsonp(url, cb, timeout) {
   // ✅ Define o callback diretamente — sem redirecionamento
   window[cb] = function(data) {
     clearTimeout(timer);
-    window[cb] = null;
     const s = document.getElementById('_jsonp_script');
     if (s) s.remove();
-    // Despacha para a função correta
-    if      (cb === '_cbRegioes')   _cbRegioes(data);
-    else if (cb === '_cbVerificar') _cbVerificar(data);
-    else if (cb === '_cbExtrair')   _cbExtrair(data);
-    else if (cb === '_cbDados')     _cbDados(data);
+    // ✅ Despacha para a função correta
+    if      (cb === '_cbRegioes')   { window._cbRegioes(data); }
+    else if (cb === '_cbVerificar') { window._cbVerificar(data); }
+    else if (cb === '_cbExtrair')   { window._cbExtrair(data); }
+    else if (cb === '_cbDados')     { window._cbDados(data); }
+    else if (typeof window[cb] === 'function') { window[cb](data); }
+    window[cb] = null;
   };
 
   const s    = document.createElement('script');
@@ -1308,24 +1309,19 @@ function renderCacheLista() {
 }
 
 function atualizarCacheRegiao(regiao) {
-  // Desabilita botões durante atualização
-  const btn = document.getElementById('btnCacheItem_' + regiao);
-  if (btn) { btn.disabled = true; btn.textContent = '...'; }
-
+  const btn      = document.getElementById('btnCacheItem_' + regiao);
   const statusEl = document.getElementById('cacheStatus_' + regiao);
-  if (statusEl) { statusEl.textContent = '⏳ Buscando dados...'; statusEl.className = 'cache-item-status'; }
 
-  // Salva região ativa temporariamente
-  const regiaoAnterior = regiaoAtiva;
-  regiaoAtiva = regiao;
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+  if (statusEl) { statusEl.textContent = '⏳ Buscando dados...'; statusEl.className = 'cache-item-status'; }
 
   limparCache(regiao);
 
-  // Faz a requisição
-  jsonp(WEB_APP_URL + '?acao=dados&regiao=' + encodeURIComponent(regiao), '_cbCacheRegiao', 120000);
+  // ✅ Callback único por região para evitar conflito
+  const cbName = '_cbCache_' + regiao.replace(/\s+/g, '_');
 
-  window._cbCacheRegiao = function(data) {
-    regiaoAtiva = regiao; // garante que salvarCache usa a região certa
+  window[cbName] = function(data) {
+    window[cbName] = null; // limpa após usar
     if (data.ok && data.unidades) {
       salvarCache(regiao, data);
       if (statusEl) {
@@ -1338,10 +1334,10 @@ function atualizarCacheRegiao(regiao) {
       toast('Erro ao carregar ' + regiao);
     }
     if (btn) { btn.disabled = false; btn.textContent = '↻'; }
-    regiaoAtiva = regiaoAnterior;
-    // Se estava atualizando tudo, avança para próxima
     if (atualizandoTudo) proximaRegiaoAtualizar();
   };
+
+  jsonp(WEB_APP_URL + '?acao=dados&regiao=' + encodeURIComponent(regiao), cbName, 120000);
 }
 
 let filaAtualizacao = [];
