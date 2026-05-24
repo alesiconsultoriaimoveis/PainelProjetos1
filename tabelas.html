@@ -413,6 +413,64 @@ body {
 }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+/* ── PAINEL CACHE ── */
+.cache-painel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  width: 100%; max-width: 600px;
+  box-shadow: var(--shadow);
+}
+.cache-painel h3 {
+  font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700;
+  margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+}
+.cache-acoes {
+  display: flex; gap: 8px; margin-bottom: 14px;
+}
+.btn-cache-all {
+  flex: 1; padding: 10px; border-radius: 10px; border: none;
+  background: var(--accent); color: #fff;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: opacity 0.15s;
+}
+.btn-cache-all:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-cache-clear {
+  padding: 10px 14px; border-radius: 10px;
+  border: 1px solid var(--border); background: var(--bg);
+  color: var(--muted); font-family: 'DM Sans', sans-serif;
+  font-size: 13px; cursor: pointer;
+}
+.cache-lista { display: flex; flex-direction: column; gap: 8px; }
+.cache-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; border-radius: 10px;
+  background: var(--bg); border: 1px solid var(--border);
+}
+.cache-item-left { display: flex; align-items: center; gap: 10px; }
+.cache-item-icon { font-size: 20px; }
+.cache-item-nome { font-size: 13px; font-weight: 600; }
+.cache-item-status { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.cache-item-status.ok { color: #16a34a; }
+.cache-item-right { display: flex; gap: 6px; align-items: center; }
+.btn-cache-item {
+  padding: 5px 10px; border-radius: 8px; border: none;
+  font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: opacity 0.15s;
+}
+.btn-cache-item.atualizar { background: var(--accent); color: #fff; }
+.btn-cache-item.limpar { background: #fef2f2; color: var(--his1); border: 1px solid #fecaca; }
+.btn-cache-item:disabled { opacity: 0.4; cursor: not-allowed; }
+.cache-progress {
+  width: 100%; height: 4px; background: var(--border);
+  border-radius: 2px; margin-top: 12px; overflow: hidden; display: none;
+}
+.cache-progress-bar {
+  height: 100%; background: var(--accent);
+  border-radius: 2px; transition: width 0.4s;
+}
+
 /* ── REGIAO BADGE ── */
 .regiao-badge {
   font-size: 11px; padding: 3px 10px; border-radius: 20px;
@@ -429,6 +487,7 @@ body {
   <div class="topbar-right">
     <span class="regiao-badge" id="regiaoAtual" style="display:none"></span>
     <button class="btn btn-ghost" id="btnTrocarRegiao" style="display:none" onclick="voltarRegioes()">↩ Região</button>
+    <button class="btn btn-ghost" id="btnCache" onclick="abrirPainelCache()" title="Gerenciar cache">🗄️ Cache</button>
     <button class="btn btn-primary" id="btnAtualizar" style="display:none" onclick="atualizarDados()">↻ Atualizar</button>
   </div>
 </div>
@@ -437,6 +496,20 @@ body {
 <div class="regiao-screen" id="regiaoScreen">
   <h2>Selecione a Região</h2>
   <p>Os projetos disponíveis com tabela de vendas serão carregados</p>
+  <!-- PAINEL DE CACHE -->
+  <div class="cache-painel" id="cachePainel" style="display:none">
+    <h3>🗄️ Gerenciar Cache de Dados</h3>
+    <div class="cache-acoes">
+      <button class="btn-cache-all" id="btnAtualizarTudo" onclick="atualizarTudo()">⬇️ Atualizar Tudo</button>
+      <button class="btn-cache-clear" onclick="limparTudo()">🗑️ Limpar Tudo</button>
+      <button class="btn-cache-clear" onclick="fecharPainelCache()">✕</button>
+    </div>
+    <div class="cache-progress" id="cacheProgress">
+      <div class="cache-progress-bar" id="cacheProgressBar" style="width:0%"></div>
+    </div>
+    <div class="cache-lista" id="cacheLista"></div>
+  </div>
+
   <div class="regiao-grid" id="regiaoGrid">
     <div style="grid-column:1/-1; text-align:center; color:var(--muted); padding:20px;">
       <div class="spinner" style="margin:0 auto 12px"></div>
@@ -612,13 +685,22 @@ window._cbRegioes = function(data) {
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--his1)">Erro ao carregar regiões. Verifique o Web App.</div>';
     return;
   }
-  grid.innerHTML = data.regioes.map(r => `
-    <div class="regiao-card" onclick="selecionarRegiao('${r.nome}')">
-      <div class="icon">${REGIOES_ICONES[r.nome] || '📍'}</div>
-      <div class="nome">${r.nome}</div>
-      <div class="count">${r.total} projeto${r.total !== 1 ? 's' : ''}</div>
-    </div>
-  `).join('');
+  // Salva lista de regiões para o painel de cache
+  regioesList = data.regioes;
+
+  grid.innerHTML = data.regioes.map(r => {
+    const cached = lerCache(r.nome);
+    const badge  = cached
+      ? '<div style="font-size:9px;color:#16a34a;margin-top:2px">✅ cache ok</div>'
+      : '';
+    return `
+      <div class="regiao-card" onclick="selecionarRegiao('${r.nome}')">
+        <div class="icon">${REGIOES_ICONES[r.nome] || '📍'}</div>
+        <div class="nome">${r.nome}</div>
+        <div class="count">${r.total} projeto${r.total !== 1 ? 's' : ''}</div>
+        ${badge}
+      </div>`;
+  }).join('');
 }
 
 window._cbVerificar = function(data) {
@@ -1172,6 +1254,151 @@ function jsonp(url, cb, timeout) {
     esconderProcessando();
   };
   document.head.appendChild(s);
+}
+
+// ── PAINEL DE CACHE ──────────────────────────────────────
+let regioesList = []; // preenchido após carregar regiões
+let atualizandoTudo = false;
+
+function abrirPainelCache() {
+  const painel = document.getElementById('cachePainel');
+  const grid   = document.getElementById('regiaoGrid');
+  painel.style.display = painel.style.display === 'none' ? '' : 'none';
+  renderCacheLista();
+}
+
+function fecharPainelCache() {
+  document.getElementById('cachePainel').style.display = 'none';
+}
+
+function renderCacheLista() {
+  const lista = document.getElementById('cacheLista');
+  if (regioesList.length === 0) {
+    lista.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:13px;padding:12px">Aguarde carregar as regiões...</div>';
+    return;
+  }
+
+  lista.innerHTML = regioesList.map(r => {
+    const cached  = lerCache(r.nome);
+    const temCache = !!cached;
+    const status   = temCache
+      ? 'atualizado ' + idadeCache(cached.timestamp) + ' · ' + (cached.data.meta.total || 0) + ' unidades'
+      : 'Sem cache — clique para carregar';
+    const icon = REGIOES_ICONES[r.nome] || '📍';
+
+    return `
+      <div class="cache-item" id="cacheItem_${r.nome}">
+        <div class="cache-item-left">
+          <div class="cache-item-icon">${icon}</div>
+          <div>
+            <div class="cache-item-nome">${r.nome}</div>
+            <div class="cache-item-status ${temCache ? 'ok' : ''}" id="cacheStatus_${r.nome}">
+              ${temCache ? '✅ ' : '⏳ '}${status}
+            </div>
+          </div>
+        </div>
+        <div class="cache-item-right">
+          ${temCache ? `<button class="btn-cache-item limpar" onclick="limparCacheRegiao('${r.nome}')">🗑️</button>` : ''}
+          <button class="btn-cache-item atualizar" id="btnCacheItem_${r.nome}" onclick="atualizarCacheRegiao('${r.nome}')">
+            ${temCache ? '↻' : '⬇️'}
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function atualizarCacheRegiao(regiao) {
+  // Desabilita botões durante atualização
+  const btn = document.getElementById('btnCacheItem_' + regiao);
+  if (btn) { btn.disabled = true; btn.textContent = '...'; }
+
+  const statusEl = document.getElementById('cacheStatus_' + regiao);
+  if (statusEl) { statusEl.textContent = '⏳ Buscando dados...'; statusEl.className = 'cache-item-status'; }
+
+  // Salva região ativa temporariamente
+  const regiaoAnterior = regiaoAtiva;
+  regiaoAtiva = regiao;
+
+  limparCache(regiao);
+
+  // Faz a requisição
+  jsonp(WEB_APP_URL + '?acao=dados&regiao=' + encodeURIComponent(regiao), '_cbCacheRegiao', 120000);
+
+  window._cbCacheRegiao = function(data) {
+    regiaoAtiva = regiao; // garante que salvarCache usa a região certa
+    if (data.ok && data.unidades) {
+      salvarCache(regiao, data);
+      if (statusEl) {
+        statusEl.textContent = '✅ atualizado agora · ' + (data.meta.total || 0) + ' unidades';
+        statusEl.className = 'cache-item-status ok';
+      }
+      toast('✅ ' + regiao + ' atualizado!');
+    } else {
+      if (statusEl) { statusEl.textContent = '❌ Erro ao carregar'; statusEl.className = 'cache-item-status'; }
+      toast('Erro ao carregar ' + regiao);
+    }
+    if (btn) { btn.disabled = false; btn.textContent = '↻'; }
+    regiaoAtiva = regiaoAnterior;
+    // Se estava atualizando tudo, avança para próxima
+    if (atualizandoTudo) proximaRegiaoAtualizar();
+  };
+}
+
+let filaAtualizacao = [];
+let indiceAtualizacao = 0;
+
+function atualizarTudo() {
+  if (atualizandoTudo) return;
+  atualizandoTudo  = true;
+  filaAtualizacao  = regioesList.map(r => r.nome);
+  indiceAtualizacao = 0;
+
+  const btnAll = document.getElementById('btnAtualizarTudo');
+  if (btnAll) { btnAll.disabled = true; btnAll.textContent = '⏳ Atualizando...'; }
+
+  const prog = document.getElementById('cacheProgress');
+  if (prog) prog.style.display = '';
+
+  proximaRegiaoAtualizar();
+}
+
+function proximaRegiaoAtualizar() {
+  if (indiceAtualizacao >= filaAtualizacao.length) {
+    // Terminou tudo
+    atualizandoTudo = false;
+    const btnAll = document.getElementById('btnAtualizarTudo');
+    if (btnAll) { btnAll.disabled = false; btnAll.textContent = '⬇️ Atualizar Tudo'; }
+    const prog = document.getElementById('cacheProgress');
+    if (prog) prog.style.display = 'none';
+    toast('✅ Todas as regiões atualizadas!');
+    renderCacheLista();
+    return;
+  }
+
+  const regiao = filaAtualizacao[indiceAtualizacao];
+  indiceAtualizacao++;
+
+  // Atualiza barra de progresso
+  const pct = Math.round((indiceAtualizacao / filaAtualizacao.length) * 100);
+  const bar = document.getElementById('cacheProgressBar');
+  if (bar) bar.style.width = pct + '%';
+
+  const btnAll = document.getElementById('btnAtualizarTudo');
+  if (btnAll) btnAll.textContent = '⏳ ' + regiao + ' (' + indiceAtualizacao + '/' + filaAtualizacao.length + ')';
+
+  atualizarCacheRegiao(regiao);
+}
+
+function limparCacheRegiao(regiao) {
+  limparCache(regiao);
+  toast('🗑️ Cache de ' + regiao + ' removido');
+  renderCacheLista();
+}
+
+function limparTudo() {
+  regioesList.forEach(r => limparCache(r.nome));
+  toast('🗑️ Cache limpo');
+  renderCacheLista();
 }
 
 // ── TOAST ─────────────────────────────────────────────────
