@@ -311,48 +311,41 @@ function idadeCache(ts){
 }
 
 // ── JSONP ─────────────────────────────────────────────────
-function jsonp(url, cbName, timeout) {
-  timeout = timeout||30000;
+function jsonp(url, cb, timeout) {
+  timeout = timeout || 30000;
   var old = document.getElementById('_js');
   if(old) old.remove();
 
   var timer = setTimeout(function(){
-    window[cbName]=null;
-    var s=document.getElementById('_js'); if(s) s.remove();
     toast('Tempo esgotado. Tente novamente.');
     esconderProcessando();
-    // Se estava atualizando tudo, avança mesmo com erro
     if(atualizandoTudo) proximaAtualiz();
   }, timeout);
 
-  window[cbName] = function(data){
+  var s = document.createElement('script');
+  s.id  = '_js';
+  s.src = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'callback=' + cb;
+  s.onerror = function(){
     clearTimeout(timer);
-    var s=document.getElementById('_js'); if(s) s.remove();
-    window[cbName]=null; // zera APÓS capturar referências
-    // Despacha para o handler correto
-    if     (cbName==='_cbR') { if(window._cbR) window._cbR(data); }
-    else if(cbName==='_cbV') { if(window._cbV) window._cbV(data); }
-    else if(cbName==='_cbE') { if(window._cbE) window._cbE(data); }
-    else if(cbName==='_cbD') { if(window._cbD) window._cbD(data); }
-    else {
-      var fn = window['__fn_'+cbName];
-      if(fn){ window['__fn_'+cbName]=null; fn(data); }
-    }
-  };
-
-  var s=document.createElement('script');
-  s.id='_js';
-  s.src=url+(url.indexOf('?')>=0?'&':'?')+'callback='+cbName;
-  s.onerror=function(){
-    clearTimeout(timer); window[cbName]=null;
     toast('Erro de conexão.'); esconderProcessando();
     if(atualizandoTudo) proximaAtualiz();
   };
   document.head.appendChild(s);
+
+  // O timeout precisa ser cancelado quando o callback for chamado
+  // Cada callback chama clearJsonpTimer() no início
+  window._jsonpTimer = timer;
 }
 
+function clearJsonpTimer(){
+  clearTimeout(window._jsonpTimer);
+  var s = document.getElementById('_js');
+  if(s) s.remove();
+}
+
+
 // ── CALLBACKS PRINCIPAIS ──────────────────────────────────
-window._cbR = function(data){
+window._cbR = function(data){ clearJsonpTimer();
   var grid=document.getElementById('regiaoGrid');
   if(!data.ok||!data.regioes){
     grid.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--his1)">Erro ao carregar regiões.</div>';
@@ -370,7 +363,7 @@ window._cbR = function(data){
   }).join('');
 }
 
-window._cbV = function(data){
+window._cbV = function(data){ clearJsonpTimer();
   if(data.ok && data.unidades && data.unidades.length>0){
     carregarDados(data);
   } else {
@@ -378,13 +371,13 @@ window._cbV = function(data){
   }
 }
 
-window._cbE = function(data){
+window._cbE = function(data){ clearJsonpTimer();
   if(!data.ok){ esconderProcessando(); toast('Erro: '+(data.msg||'Falha')); return; }
   toast('✅ '+data.unidades+' unidades extraídas!');
   jsonp(WEB_APP_URL+'?acao=dados&regiao='+encodeURIComponent(regiaoAtiva),'_cbD',120000);
 }
 
-window._cbD = function(data){
+window._cbD = function(data){ clearJsonpTimer();
   if(!data.ok){ esconderProcessando(); toast('Erro ao carregar dados'); return; }
   carregarDados(data);
 }
@@ -461,10 +454,9 @@ function atualizarCacheRegiao(regiao){
   // Callback único por região — usa nome sanitizado
   var cbName='_cbC_'+regiao.replace(/[^a-zA-Z0-9]/g,'_');
 
-  // Guarda o handler no store
-  window['__fn_'+cbName]=function(data){
+  // Define callback direto no window com nome único por região
+  window[cbName] = function(data){ clearJsonpTimer();
     if(data.ok && data.unidades){
-      // Salva com a região correta
       try {
         localStorage.setItem(CACHE_PFX+regiao, JSON.stringify({v:CACHE_VER, ts:Date.now(), data:data}));
       } catch(e){}
@@ -475,7 +467,6 @@ function atualizarCacheRegiao(regiao){
       toast('Erro em '+regiao);
     }
     if(btn){ btn.disabled=false; btn.textContent='↻'; }
-    // Atualiza badge na grade
     atualizarBadgeGrade(regiao, data.ok);
     if(atualizandoTudo) proximaAtualiz();
   };
