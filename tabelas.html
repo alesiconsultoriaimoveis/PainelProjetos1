@@ -639,7 +639,7 @@ window._cbExtrair = function(data) {
   }
   toast(`✅ ${data.unidades} unidades extraídas!`);
   // Busca os dados recém-extraídos
-  jsonp(`${WEB_APP_URL}?acao=dados&regiao=${encodeURIComponent(regiaoAtiva)}`, '_cbDados');
+  jsonp(`${WEB_APP_URL}?acao=dados&regiao=${encodeURIComponent(regiaoAtiva)}`, '_cbDados', 120000);
 }
 
 window._cbDados = function(data) {
@@ -651,26 +651,71 @@ window._cbDados = function(data) {
   carregarDados(data);
 }
 
+// ── CACHE LOCAL ───────────────────────────────────────────
+const CACHE_PREFIX  = 'tabelas_cache_';
+const CACHE_VERSION = 'v1';
+
+function salvarCache(regiao, data) {
+  try {
+    localStorage.setItem(CACHE_PREFIX + regiao, JSON.stringify({
+      version: CACHE_VERSION, timestamp: Date.now(), data
+    }));
+  } catch(e) { console.warn('Cache cheio:', e); }
+}
+
+function lerCache(regiao) {
+  try {
+    const raw = localStorage.getItem(CACHE_PREFIX + regiao);
+    if (!raw) return null;
+    const cached = JSON.parse(raw);
+    if (cached.version !== CACHE_VERSION) return null;
+    return cached;
+  } catch(e) { return null; }
+}
+
+function limparCache(regiao) {
+  localStorage.removeItem(CACHE_PREFIX + regiao);
+}
+
+function idadeCache(timestamp) {
+  const mins = Math.floor((Date.now() - timestamp) / 60000);
+  if (mins < 60)  return mins + ' min atrás';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24)   return hrs + 'h atrás';
+  return Math.floor(hrs / 24) + 'd atrás';
+}
+
 // ── SELECIONAR REGIÃO ─────────────────────────────────────
 function selecionarRegiao(regiao) {
   regiaoAtiva = regiao;
-  mostrarProcessando(`Carregando ${regiao}...`, 'Verificando dados existentes...');
-  // ✅ Passa a região para o backend filtrar corretamente
-  jsonp(`${WEB_APP_URL}?acao=dados&regiao=${encodeURIComponent(regiao)}`, '_cbVerificar');
+  const cached = lerCache(regiao);
+  if (cached) {
+    mostrarProcessando('Carregando ' + regiao + '...', 'Carregando dados do cache...');
+    setTimeout(function() {
+      carregarDados(cached.data);
+      toast('✅ ' + regiao + ' · atualizado ' + idadeCache(cached.timestamp));
+    }, 200);
+    return;
+  }
+  mostrarProcessando('Carregando ' + regiao + '...', 'Buscando dados no servidor pela primeira vez...');
+  jsonp(WEB_APP_URL + '?acao=dados&regiao=' + encodeURIComponent(regiao), '_cbVerificar', 120000);
 }
 
 function extrairRegiao() {
   mostrarProcessando(
-    `Processando ${regiaoAtiva}`,
+    'Processando ' + regiaoAtiva,
     'Lendo as tabelas de vendas em PDF. Isso pode levar alguns minutos...'
   );
-  jsonp(`${WEB_APP_URL}?acao=extrair&regiao=${encodeURIComponent(regiaoAtiva)}`, '_cbExtrair', 300000);
+  jsonp(WEB_APP_URL + '?acao=extrair&regiao=' + encodeURIComponent(regiaoAtiva), '_cbExtrair', 300000);
 }
 
 function carregarDados(data) {
   todosUnidades = data.unidades || [];
   todosInfos    = data.infos    || [];
   meta          = data.meta     || {};
+
+  // Salva no cache local para próximas visitas
+  if (regiaoAtiva) salvarCache(regiaoAtiva, data);
 
   popularFiltros();
   popularSelects();
@@ -713,6 +758,7 @@ function voltarRegioes() {
 
 function atualizarDados() {
   if (!regiaoAtiva) return;
+  limparCache(regiaoAtiva); // Limpa cache para forçar dados frescos
   extrairRegiao();
 }
 
