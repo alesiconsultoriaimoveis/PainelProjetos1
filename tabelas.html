@@ -426,51 +426,40 @@ function atualizarCacheRegiao(reg){
   var btn=document.getElementById('cb_'+reg);
   var sEl=document.getElementById('cs_'+reg);
   if(btn){btn.disabled=true;btn.textContent='...';}
-  if(sEl){sEl.textContent='⏳ Buscando...';sEl.className='cache-item-status';}
+  if(sEl){sEl.textContent='⏳ Extraindo PDFs...';sEl.className='cache-item-status';}
   limparCache(reg);
-  var cbName='_cbC_'+reg.replace(/[^a-zA-Z0-9]/g,'_');
-  window[cbName]=function(data){
+
+  // ✅ SEMPRE força re-extração dos PDFs (não usa dados existentes)
+  var cbEx='_cbEx_'+reg.replace(/[^a-zA-Z0-9]/g,'_');
+  window[cbEx]=function(exData){
     clearJT();
-    if(data.ok&&data.unidades){
-      try{localStorage.setItem(CACHE_PFX+reg,JSON.stringify({v:CACHE_VER,ts:Date.now(),data:data}));}catch(e){}
-      if(sEl){sEl.textContent='✅ agora · '+(data.meta?data.meta.total:0)+' unidades';sEl.className='cache-item-status ok';}
-      toast('✅ '+reg+' atualizado!');
-      if(btn){btn.disabled=false;btn.textContent='↻';}
-      atualizarBadgeGrade(reg,true);
-      if(atualizandoTudo)proximaAtualiz();
-    } else {
-      // Não extraído ainda — extrai automaticamente
-      if(sEl){sEl.textContent='⏳ Extraindo PDFs...';sEl.className='cache-item-status';}
-      var cbEx='_cbEx_'+reg.replace(/[^a-zA-Z0-9]/g,'_');
-      window[cbEx]=function(exData){
+    if(exData.ok){
+      // Extração OK — agora busca os dados atualizados
+      if(sEl){sEl.textContent='⏳ Carregando dados...';sEl.className='cache-item-status';}
+      var cbD2='_cbD2_'+reg.replace(/[^a-zA-Z0-9]/g,'_');
+      window[cbD2]=function(d2){
         clearJT();
-        if(exData.ok){
-          var cbD2='_cbD2_'+reg.replace(/[^a-zA-Z0-9]/g,'_');
-          window[cbD2]=function(d2){
-            clearJT();
-            if(d2.ok&&d2.unidades){
-              try{localStorage.setItem(CACHE_PFX+reg,JSON.stringify({v:CACHE_VER,ts:Date.now(),data:d2}));}catch(e){}
-              if(sEl){sEl.textContent='✅ extraído · '+(d2.meta?d2.meta.total:0)+' unidades';sEl.className='cache-item-status ok';}
-              toast('✅ '+reg+' extraído!');
-              atualizarBadgeGrade(reg,true);
-            } else {
-              if(sEl){sEl.textContent='❌ Erro após extração';sEl.className='cache-item-status';}
-            }
-            if(btn){btn.disabled=false;btn.textContent='↻';}
-            if(atualizandoTudo)proximaAtualiz();
-          };
-          jsonp(WEB_APP_URL+'?acao=dados&regiao='+encodeURIComponent(reg),cbD2,120000);
+        if(d2.ok&&d2.unidades){
+          try{localStorage.setItem(CACHE_PFX+reg,JSON.stringify({v:CACHE_VER,ts:Date.now(),data:d2}));}catch(e){}
+          if(sEl){sEl.textContent='✅ atualizado agora · '+(d2.meta?d2.meta.total:0)+' unidades';sEl.className='cache-item-status ok';}
+          toast('✅ '+reg+' atualizado!');
+          atualizarBadgeGrade(reg,true);
         } else {
-          if(sEl){sEl.textContent='❌ Falha na extração';sEl.className='cache-item-status';}
-          toast('Erro ao extrair '+reg);
-          if(btn){btn.disabled=false;btn.textContent='↻';}
-          if(atualizandoTudo)proximaAtualiz();
+          if(sEl){sEl.textContent='❌ Erro ao carregar dados';sEl.className='cache-item-status';}
+          toast('Erro ao carregar '+reg);
         }
+        if(btn){btn.disabled=false;btn.textContent='↻';}
+        if(atualizandoTudo)proximaAtualiz();
       };
-      jsonp(WEB_APP_URL+'?acao=extrair&regiao='+encodeURIComponent(reg),cbEx,300000);
+      jsonp(WEB_APP_URL+'?acao=dados&regiao='+encodeURIComponent(reg),cbD2,120000);
+    } else {
+      if(sEl){sEl.textContent='❌ Falha na extração: '+(exData.msg||'');sEl.className='cache-item-status';}
+      toast('Erro ao extrair '+reg);
+      if(btn){btn.disabled=false;btn.textContent='↻';}
+      if(atualizandoTudo)proximaAtualiz();
     }
   };
-  jsonp(WEB_APP_URL+'?acao=dados&regiao='+encodeURIComponent(reg),cbName,120000);
+  jsonp(WEB_APP_URL+'?acao=extrair&regiao='+encodeURIComponent(reg),cbEx,300000);
 }
 
 function atualizarBadgeGrade(reg,ok){
