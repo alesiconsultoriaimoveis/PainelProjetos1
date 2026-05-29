@@ -579,12 +579,25 @@ function renderEspelho(){
     var mapaAndar={},todasUnids=new Set();
 
     units.forEach(function(u){
-      // ✅ Normaliza andar para string consistente
+     // ✅ Usa sufixo da unidade como coluna para alinhar andares
       var andarKey=String(u.andar).trim();
-      var unidKey=String(u.unidade).trim();
+      var unidStr=String(u.unidade).trim();
+      // Remove número do andar do início da unidade para obter sufixo
+      // Ex: andar=25, unidade=2501 -> sufixo=01
+      // Ex: andar=1, unidade=101 -> sufixo=01
+      // Ex: andar=3, unidade=303P -> sufixo=03P
+      var andarNum=parseInt(u.andar)||0;
+      var sufixo=unidStr;
+      if(andarNum>0){
+        var prefix=String(andarNum);
+        if(unidStr.startsWith(prefix)){
+          sufixo=unidStr.substring(prefix.length);
+        }
+      }
+      if(!sufixo||sufixo==='')sufixo=unidStr;
       if(!mapaAndar[andarKey])mapaAndar[andarKey]={};
-      mapaAndar[andarKey][unidKey]=u.tipo;
-      todasUnids.add(unidKey);
+      mapaAndar[andarKey][sufixo]=u.tipo;
+      todasUnids.add(sufixo);
     });
 
     // ✅ Ordena andares numericamente (Térreo por último)
@@ -594,7 +607,7 @@ function renderEspelho(){
       return (parseInt(b)||0)-(parseInt(a)||0);
     });
 
-    // ✅ Ordena unidades — extrai parte numérica para ordenação, mantém texto original
+    // ✅ Ordena sufixos numericamente
     var colunas=[...todasUnids].sort(function(a,b){
       var na=parseInt(String(a).replace(/\D/g,''))||0;
       var nb=parseInt(String(b).replace(/\D/g,''))||0;
