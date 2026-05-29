@@ -575,62 +575,74 @@ function renderEspelho(){
     +'</div>';
 
   Object.entries(pt).sort().forEach(function(entry){
-    var torre=entry[0],units=entry[1];
-    var mapaAndar={},todasUnids=new Set();
+    var torre=entry[0], units=entry[1];
 
+    // Agrupa por andar
+    var porAndar={};
     units.forEach(function(u){
-     // ✅ Usa sufixo da unidade como coluna para alinhar andares
-      var andarKey=String(u.andar).trim();
-      var unidStr=String(u.unidade).trim();
-      // Remove número do andar do início da unidade para obter sufixo
-      // Ex: andar=25, unidade=2501 -> sufixo=01
-      // Ex: andar=1, unidade=101 -> sufixo=01
-      // Ex: andar=3, unidade=303P -> sufixo=03P
-      var andarNum=parseInt(u.andar)||0;
-      var sufixo=unidStr;
-      if(andarNum>0){
-        var prefix=String(andarNum);
-        if(unidStr.startsWith(prefix)){
-          sufixo=unidStr.substring(prefix.length);
-        }
-      }
-      if(!sufixo||sufixo==='')sufixo=unidStr;
-      if(!mapaAndar[andarKey])mapaAndar[andarKey]={};
-      mapaAndar[andarKey][sufixo]=u.tipo;
-      todasUnids.add(sufixo);
+      var ak=String(u.andar).trim();
+      if(!porAndar[ak])porAndar[ak]=[];
+      porAndar[ak].push(u);
     });
 
-    // ✅ Ordena andares numericamente (Térreo por último)
-    var andares=Object.keys(mapaAndar).sort(function(a,b){
-      var aT=a.toLowerCase()==='térreo'||a==='0',bT=b.toLowerCase()==='térreo'||b==='0';
+    // Ordena andares (desc, Térreo no final)
+    var andares=Object.keys(porAndar).sort(function(a,b){
+      var aT=a.toLowerCase()==='térreo'||a==='0';
+      var bT=b.toLowerCase()==='térreo'||b==='0';
       if(aT&&!bT)return 1;if(!aT&&bT)return -1;
       return (parseInt(b)||0)-(parseInt(a)||0);
     });
 
-    // ✅ Ordena sufixos numericamente
-    var colunas=[...todasUnids].sort(function(a,b){
-      var na=parseInt(String(a).replace(/\D/g,''))||0;
-      var nb=parseInt(String(b).replace(/\D/g,''))||0;
-      if(na!==nb)return na-nb;
-      return String(a).localeCompare(String(b));
-    }).slice(0,24);
+    // Descobre o número máximo de posições por andar
+    // Usa o andar com mais unidades como referência
+    var maxPos=0;
+    andares.forEach(function(ak){maxPos=Math.max(maxPos,porAndar[ak].length);});
+    maxPos=Math.min(maxPos,20); // máx 20 colunas
+
+    // Para cada andar, ordena unidades e mapeia por posição (1,2,3...)
+    var mapaAndarPos={}; // andar -> {pos -> {tipo, unid}}
+    andares.forEach(function(ak){
+      var unidsAndar=porAndar[ak].slice().sort(function(a,b){
+        var na=parseInt(String(a.unidade).replace(/\D/g,''))||0;
+        var nb=parseInt(String(b.unidade).replace(/\D/g,''))||0;
+        return na-nb;
+      });
+      mapaAndarPos[ak]={};
+      unidsAndar.forEach(function(u,i){
+        if(i<maxPos) mapaAndarPos[ak][i+1]={tipo:u.tipo,unid:String(u.unidade)};
+      });
+    });
+
+    // Descobre quais posições existem em algum andar
+    var posicoesSet=new Set();
+    andares.forEach(function(ak){
+      Object.keys(mapaAndarPos[ak]).forEach(function(p){posicoesSet.add(parseInt(p));});
+    });
+    var posicoes=[...posicoesSet].sort(function(a,b){return a-b;});
 
     html+='<div class="torre-bloco"><div class="torre-titulo">🏗️ '+torre+'</div>'
       +'<div style="overflow-x:auto"><table class="espelho-table"><thead><tr>'
-      +'<th>ANDAR</th>'+colunas.map(function(c){return '<th>'+c+'</th>';}).join('')
+      +'<th>ANDAR</th>'
+      +posicoes.map(function(p){return '<th>POS. '+(p<10?'0':'')+p+'</th>';}).join('')
       +'</tr></thead><tbody>';
 
-    andares.forEach(function(andar){
-      var andarLbl=andar.toLowerCase()==='térreo'||andar==='0'?'Tér.':andar;
+    andares.forEach(function(ak){
+      var andarLbl=ak.toLowerCase()==='térreo'||ak==='0'?'Tér.':ak+'º';
       html+='<tr><td class="andar-lbl">'+andarLbl+'</td>';
-      colunas.forEach(function(col){
-        var tipo=mapaAndar[andar]&&mapaAndar[andar][col];
-        html+=tipo?'<td class="'+tipo.toLowerCase()+'">'+col+'</td>':'<td class="vazia">-</td>';
+      posicoes.forEach(function(p){
+        var entry=mapaAndarPos[ak]&&mapaAndarPos[ak][p];
+        if(entry){
+          html+='<td class="'+entry.tipo.toLowerCase()+'">'+entry.unid+'</td>';
+        }else{
+          html+='<td class="vazia">-</td>';
+        }
       });
       html+='</tr>';
     });
+
     html+='</tbody></table></div></div>';
   });
+
   cont.innerHTML=html;
 }
 
