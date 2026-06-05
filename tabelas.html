@@ -306,6 +306,8 @@ const TIPO_CONFIG={
 let todosUnidades=[],todosInfos=[],meta={},regiaoAtiva='',abaAtiva='busca';
 let regioesList=[],atualizandoTudo=false,filaAtualiz=[],idxAtualiz=0;
 let implantacoes=JSON.parse(localStorage.getItem('implantacoes')||'{}');
+let torresData={};
+let projetoAtivo=''; // projeto selecionado globalmente
 let totaisEditaveis=JSON.parse(localStorage.getItem('totaisEditaveis')||'{}');
 
 const CACHE_PFX='tabcache_',CACHE_VER='v2';
@@ -383,6 +385,7 @@ function extrairRegiao(){
 }
 function carregarDados(data){
   todosUnidades=data.unidades||[];todosInfos=data.infos||[];meta=data.meta||{};
+  torresData=data.torresData||{};
   if(regiaoAtiva)salvarCache(regiaoAtiva,data);
   popularFiltros();popularSelects();aplicarFiltros();mostrarApp();
 }
@@ -512,6 +515,18 @@ function aplicarFiltros(){
       fD=document.getElementById('fDorms').value,fTi=document.getElementById('fTipo').value,
       fA=document.getElementById('fAndar').value,fVg=document.getElementById('fVagas').value,
       fPr=document.getElementById('fPreco').value;
+
+  // Sincroniza projeto ativo entre abas
+  if(fP && fP !== projetoAtivo){
+    projetoAtivo = fP;
+    sincronizarProjeto(fP);
+  } else if(!fP) {
+    projetoAtivo = '';
+  }
+
+  // Filtros dinâmicos baseados no projeto selecionado
+  atualizarFiltrosDinamicos(fP);
+
   document.getElementById('tabEspelho').style.display=fP?'':'none';
   var fil=todosUnidades.filter(function(u){
     if(fP&&u.projeto!==fP)return false;if(fT&&u.torre!==fT)return false;
@@ -558,83 +573,132 @@ function cardHTML(u){
 
 // ✅ ESPELHO CORRIGIDO
 function renderEspelho(){
-  var proj=document.getElementById('espelhoProjeto').value,cont=document.getElementById('espelhoContent');
+  var proj=document.getElementById('espelhoProjeto').value;
+  var cont=document.getElementById('espelhoContent');
   if(!proj){cont.innerHTML='<div class="empty-state"><div class="icon">📋</div><h3>Selecione um projeto</h3></div>';return;}
-  var uns=todosUnidades.filter(function(u){return u.projeto===proj;});
-  if(!uns.length){cont.innerHTML='<div class="empty-state"><div class="icon">📋</div><h3>Sem unidades</h3></div>';return;}
 
+  var uns=todosUnidades.filter(function(u){return u.projeto===proj;});
+  if(!uns.length){cont.innerHTML='<div class="empty-state"><div class="icon">📋</div><h3>Sem unidades disponíveis</h3></div>';return;}
+
+  // Agrupa por torre
   var pt={};
   uns.forEach(function(u){if(!pt[u.torre])pt[u.torre]=[];pt[u.torre].push(u);});
 
   var html='<div class="espelho-legenda">'
-    +'<div class="leg-item"><div class="leg-dot" style="background:var(--his1)"></div>HIS1</div>'
-    +'<div class="leg-item"><div class="leg-dot" style="background:var(--his2)"></div>HIS2</div>'
-    +'<div class="leg-item"><div class="leg-dot" style="background:var(--hmp)"></div>HMP</div>'
-    +'<div class="leg-item"><div class="leg-dot" style="background:var(--r2v)"></div>R2V</div>'
-    +'<div class="leg-item"><div class="leg-dot" style="background:#f1f1f4;border:1px solid var(--border)"></div>Vazio</div>'
+    +'<div class="leg-item"><div class="leg-dot" style="background:var(--his1)"></div>HIS1 - Disponível</div>'
+    +'<div class="leg-item"><div class="leg-dot" style="background:var(--his2)"></div>HIS2 - Disponível</div>'
+    +'<div class="leg-item"><div class="leg-dot" style="background:var(--hmp)"></div>HMP - Disponível</div>'
+    +'<div class="leg-item"><div class="leg-dot" style="background:var(--r2v)"></div>R2V - Disponível</div>'
+    +'<div class="leg-item"><div class="leg-dot" style="background:#f1f1f4;border:1px solid var(--border)"></div>Vendida/Vazia</div>'
     +'</div>';
+
+  // Dados da aba TORRES para este projeto
+  var projTorresInfo = torresData[proj] ? torresData[proj].torres : {};
 
   Object.entries(pt).sort().forEach(function(entry){
     var torre=entry[0], units=entry[1];
 
-    // Agrupa por andar
-    var porAndar={};
+    // Mapa de unidades disponíveis: andar -> unidade -> tipo
+    var dispMap={};
     units.forEach(function(u){
       var ak=String(u.andar).trim();
-      if(!porAndar[ak])porAndar[ak]=[];
-      porAndar[ak].push(u);
+      var uk=String(u.unidade).trim();
+      if(!dispMap[ak])dispMap[ak]={};
+      dispMap[ak][uk]=u.tipo;
     });
 
-    // Ordena andares (desc, Térreo no final)
-    var andares=Object.keys(porAndar).sort(function(a,b){
-      var aT=a.toLowerCase()==='térreo'||a==='0';
-      var bT=b.toLowerCase()==='térreo'||b==='0';
-      if(aT&&!bT)return 1;if(!aT&&bT)return -1;
-      return (parseInt(b)||0)-(parseInt(a)||0);
+    // Descobre andares e prumadas da aba TORRES
+    var torreInfo=projTorresInfo[torre];
+    var totalAndares=torreInfo?torreInfo.andares:0;
+    var totalPrumadas=torreInfo?torreInfo.prumadas:0;
+
+    // Se não tem info da aba TORRES, infere dos dados disponíveis
+    if(!totalAndares||!totalPrumadas){
+      // Infere andares — considera negativos também
+      var andNums=units.map(function(u){
+        var a=String(u.andar).trim();
+        return isNaN(parseInt(a))?0:parseInt(a);
+      });
+      var minAnd=Math.min.apply(null,andNums);
+      var maxAnd=Math.max.apply(null,andNums);
+      totalAndares=maxAnd-minAnd+1;
+
+      // Infere prumadas pelo andar com mais unidades
+      var maxPrum=0;
+      Object.keys(dispMap).forEach(function(ak){
+        maxPrum=Math.max(maxPrum,Object.keys(dispMap[ak]).length);
+      });
+      totalPrumadas=maxPrum;
+    }
+
+    // Gera lista de andares — do maior para o menor (inclui negativos)
+    // Detecta o andar máximo e mínimo dos dados reais
+    var andNums=units.map(function(u){
+      var a=String(u.andar).trim();
+      return isNaN(parseInt(a))?null:parseInt(a);
+    }).filter(function(a){return a!==null;});
+
+    // Verifica se há andares alfanuméricos (ex: "Térreo", "C-2")
+    var andAlfa=units.map(function(u){return String(u.andar).trim();})
+      .filter(function(a){return isNaN(parseInt(a))&&a!=='0';});
+
+    var maxAnd=andNums.length?Math.max.apply(null,andNums):totalAndares;
+    var minAnd=andNums.length?Math.min.apply(null,andNums):1;
+
+    // Garante que totalAndares cubra todos os andares reais
+    if(totalAndares<(maxAnd-minAnd+1)) totalAndares=maxAnd-minAnd+1;
+
+    // Lista de andares ordenada do maior para o menor
+    var andaresList=[];
+    for(var a=maxAnd;a>=minAnd;a--){andaresList.push(a);}
+    // Adiciona andares alfanuméricos no início (acima do positivo máximo)
+    andAlfa.forEach(function(a){
+      if(andaresList.indexOf(a)<0)andaresList.unshift(a);
     });
 
-    // Descobre o número máximo de posições por andar
-    // Usa o andar com mais unidades como referência
-    var maxPos=0;
-    andares.forEach(function(ak){maxPos=Math.max(maxPos,porAndar[ak].length);});
-    maxPos=Math.min(maxPos,20); // máx 20 colunas
+    // Gera lista de prumadas (01, 02, ... totalPrumadas)
+    var prumadas=[];
+    for(var p=1;p<=totalPrumadas;p++){prumadas.push(p);}
 
-    // Para cada andar, ordena unidades e mapeia por posição (1,2,3...)
-    var mapaAndarPos={}; // andar -> {pos -> {tipo, unid}}
-    andares.forEach(function(ak){
-      var unidsAndar=porAndar[ak].slice().sort(function(a,b){
-        var na=parseInt(String(a.unidade).replace(/\D/g,''))||0;
-        var nb=parseInt(String(b.unidade).replace(/\D/g,''))||0;
+    // Para cada andar, mapeia unidade disponível por posição (ordem numérica)
+    function getPosMap(andarKey){
+      var unidsDoAndar=dispMap[andarKey]||{};
+      var sorted=Object.keys(unidsDoAndar).sort(function(a,b){
+        // Ordena alfanumerico: letras primeiro, depois números
+        var na=parseInt(String(a).replace(/\D/g,''))||0;
+        var nb=parseInt(String(b).replace(/\D/g,''))||0;
         return na-nb;
       });
-      mapaAndarPos[ak]={};
-      unidsAndar.forEach(function(u,i){
-        if(i<maxPos) mapaAndarPos[ak][i+1]={tipo:u.tipo,unid:String(u.unidade)};
+      var posMap={};
+      sorted.forEach(function(unid,i){
+        posMap[i+1]={tipo:unidsDoAndar[unid],unid:unid};
       });
-    });
+      return posMap;
+    }
 
-    // Descobre quais posições existem em algum andar
-    var posicoesSet=new Set();
-    andares.forEach(function(ak){
-      Object.keys(mapaAndarPos[ak]).forEach(function(p){posicoesSet.add(parseInt(p));});
-    });
-    var posicoes=[...posicoesSet].sort(function(a,b){return a-b;});
-
-    html+='<div class="torre-bloco"><div class="torre-titulo">🏗️ '+torre+'</div>'
-      +'<div style="overflow-x:auto"><table class="espelho-table"><thead><tr>'
-      +'<th>ANDAR</th>'
-      +posicoes.map(function(p){return '<th>POS. '+(p<10?'0':'')+p+'</th>';}).join('')
+    // Monta tabela
+    html+='<div class="torre-bloco"><div class="torre-titulo">🏗️ '+torre
+      +(torreInfo?' <span style="font-size:11px;color:var(--muted);font-weight:400">'
+        +torreInfo.andares+' andares · '+torreInfo.prumadas+' prumadas</span>':'')
+      +'</div><div style="overflow-x:auto">'
+      +'<table class="espelho-table"><thead><tr><th>ANDAR</th>'
+      +prumadas.map(function(p){return '<th>'+(p<10?'0':'')+p+'</th>';}).join('')
       +'</tr></thead><tbody>';
 
-    andares.forEach(function(ak){
-      var andarLbl=ak.toLowerCase()==='térreo'||ak==='0'?'Tér.':ak+'º';
+    andaresList.forEach(function(andar){
+      var andarKey=String(andar).trim();
+      var andarLbl=andar===0||andarKey==='0'?'Tér.':
+                   andar<0?andar+'º':
+                   isNaN(andar)?andarKey:andar+'º';
+      var posMap=getPosMap(andarKey);
+
       html+='<tr><td class="andar-lbl">'+andarLbl+'</td>';
-      posicoes.forEach(function(p){
-        var entry=mapaAndarPos[ak]&&mapaAndarPos[ak][p];
+      prumadas.forEach(function(p){
+        var entry=posMap[p];
         if(entry){
-          html+='<td class="'+entry.tipo.toLowerCase()+'">'+entry.unid+'</td>';
+          html+='<td class="'+entry.tipo.toLowerCase()+'" title="'+entry.tipo+'">'+entry.unid+'</td>';
         }else{
-          html+='<td class="vazia">-</td>';
+          html+='<td class="vazia">–</td>';
         }
       });
       html+='</tr>';
@@ -663,7 +727,9 @@ function renderInfo(){
 
   var info=todosInfos.find(function(i){return i.projeto===proj;})||{};
   var units=todosUnidades.filter(function(u){return u.projeto===proj;});
-  var totalEdit=totaisEditaveis[proj]||info.totalUnid||'-';
+  // Busca totalUnid da aba TORRES automaticamente
+  var totalTorres = torresData[proj] ? torresData[proj].totalUnid : '';
+  var totalEdit=totalTorres||totaisEditaveis[proj]||info.totalUnid||'-';
 
   // Distribuição por Torre/Tipo
   var dist={};var torres=[];
@@ -701,7 +767,10 @@ function renderInfo(){
     +'<div class="info-card"><div class="ic-label">Lançamento</div><div class="ic-val">'+fmtData(info.lancamento)+'</div></div>'
     +'<div class="info-card"><div class="ic-label">Entrega Prevista</div><div class="ic-val">'+fmtData(info.entrega)+'</div></div>'
     +'<div class="info-card"><div class="ic-label">Torres</div><div class="ic-val">'+(info.torres||torres.length||'-')+'</div></div>'
-    +'<div class="info-card editavel" onclick="editarTotal(\''+proj+'\')" title="Clique para editar"><div class="ic-label">Total Unidades ✏️</div><div class="ic-val">'+totalEdit+'</div></div>'
+    +(totalTorres
+    ?'<div class="info-card"><div class="ic-label">Total Unidades</div><div class="ic-val">'+totalEdit+'</div></div>'
+    :'<div class="info-card editavel" onclick="editarTotal(\''+proj+'\')" title="Clique para editar"><div class="ic-label">Total Unidades ✏️</div><div class="ic-val">'+totalEdit+'</div></div>'
+  )
     +'<div class="info-card"><div class="ic-label">Disponíveis</div><div class="ic-val">'+units.length+'</div></div>'
     +'<div class="info-card"><div class="ic-label">Área Terreno</div><div class="ic-val small">'+(info.areaTerreno||'-')+'</div></div>'
     +'</div>';
@@ -814,6 +883,65 @@ function mudarAba(aba,el){
   if(el)el.classList.add('active');
   ['abaBusca','abaEspelho','abaInfo','abaImplant'].forEach(function(id){document.getElementById(id).style.display='none';});
   document.getElementById('aba'+aba.charAt(0).toUpperCase()+aba.slice(1)).style.display='';
+
+  // Sincroniza projeto ativo ao mudar de aba
+  if(projetoAtivo){
+    var selId={espelho:'espelhoProjeto',info:'infoProjeto',implant:'implantProjeto'}[aba];
+    if(selId){
+      var sel=document.getElementById(selId);
+      if(sel&&sel.value!==projetoAtivo){
+        sel.value=projetoAtivo;
+        // Dispara render automaticamente
+        if(aba==='espelho')renderEspelho();
+        else if(aba==='info')renderInfo();
+        else if(aba==='implant')renderImplant();
+      }
+    }
+  }
+}
+
+// ── SINCRONIZAÇÃO DE PROJETO ENTRE ABAS ─────────────────
+function sincronizarProjeto(proj){
+  // Atualiza selects das outras abas
+  var selects=['espelhoProjeto','infoProjeto','implantProjeto'];
+  selects.forEach(function(id){
+    var el=document.getElementById(id);
+    if(el&&el.value!==proj){
+      el.value=proj;
+      // Dispara render se a aba estiver visível
+    }
+  });
+}
+
+function atualizarFiltrosDinamicos(proj){
+  if(!proj){
+    // Sem projeto — mostra todas as opções
+    popularFiltros();
+    return;
+  }
+  // Com projeto — filtra opções baseado nas unidades do projeto
+  var unidsProjeto=todosUnidades.filter(function(u){return u.projeto===proj;});
+
+  function selDin(id,arr,fmt){
+    var el=document.getElementById(id),val=el.value;
+    el.innerHTML='<option value="">Todos</option>'+arr.map(function(v){
+      return '<option value="'+v+'">'+(fmt?fmt(v):v)+'</option>';
+    }).join('');
+    if(val&&arr.indexOf(val)>=0)el.value=val;
+    else el.value='';
+  }
+
+  var torres=[...new Set(unidsProjeto.map(function(u){return u.torre;}))].sort();
+  var dorms=[...new Set(unidsProjeto.map(function(u){return u.dorms;}))].sort(function(a,b){return a-b;});
+  var tipos=[...new Set(unidsProjeto.map(function(u){return u.tipo;}))].sort();
+  var andares=[...new Set(unidsProjeto.map(function(u){return String(u.andar)}))].sort(function(a,b){
+    return (parseInt(a)||0)-(parseInt(b)||0);
+  });
+
+  selDin('fTorre',torres);
+  selDin('fDorms',dorms,function(d){return d+' dorm'+(d!==1?'s':'');});
+  selDin('fTipo',tipos);
+  selDin('fAndar',andares);
 }
 
 function toast(msg){
