@@ -14,7 +14,6 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-
 .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px;position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow)}
 .topbar h1{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;letter-spacing:-.5px}
 .topbar h1 span{color:var(--accent)}
@@ -22,7 +21,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .btn{padding:7px 14px;border-radius:10px;border:none;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}
 .btn-primary{background:var(--accent);color:#fff}
 .btn-ghost{background:var(--bg);color:var(--text);border:1px solid var(--border)}
-
 .regiao-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 57px);padding:24px;gap:20px}
 .regiao-screen h2{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;text-align:center}
 .regiao-screen>p{font-size:14px;color:var(--muted);text-align:center}
@@ -33,7 +31,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .regiao-card .nome{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;text-align:center}
 .regiao-card .count{font-size:11px;color:var(--muted)}
 .regiao-card .cache-ok{font-size:10px;color:#16a34a;font-weight:600}
-
 .cache-painel{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;width:100%;max-width:600px;box-shadow:var(--shadow)}
 .cache-painel h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:12px}
 .cache-acoes{display:flex;gap:8px;margin-bottom:14px}
@@ -54,28 +51,24 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .btn-ci.az{background:var(--accent);color:#fff}
 .btn-ci.rm{background:#fef2f2;color:var(--his1);border:1px solid #fecaca}
 .btn-ci:disabled{opacity:.4;cursor:not-allowed}
-
 .processing-screen{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 57px);gap:20px;padding:24px}
 .processing-screen.show{display:flex}
 .spinner{width:48px;height:48px;border-radius:50%;border:4px solid var(--border);border-top-color:var(--accent);animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .processing-screen h3{font-family:'Syne',sans-serif;font-size:20px;font-weight:700}
 .processing-screen p{font-size:14px;color:var(--muted);text-align:center;max-width:300px}
-
 .app-screen{display:none}
 .app-screen.show{display:block}
 .tabs{background:var(--surface);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;position:sticky;top:57px;z-index:90}
 .tabs::-webkit-scrollbar{display:none}
 .tab{padding:12px 20px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;transition:all .15s;flex-shrink:0}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-
 .filtros-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .filtro-group{display:flex;flex-direction:column;gap:3px;min-width:90px}
 .filtro-group label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:500}
 .filtro-group select{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--text);cursor:pointer;outline:none}
 .filtros-actions{display:flex;gap:8px;align-items:flex-end;margin-left:auto}
 .btn-limpar{padding:5px 12px;font-size:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif}
-
 .contagem-bar{padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
 .contagem-bar span{font-size:13px;color:var(--muted)}
 .cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 12px 24px}
@@ -94,8 +87,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .unit-card .dado-val{font-size:12px;font-weight:500}
 .unit-card .valor{font-size:14px;font-weight:700;border-top:1px solid var(--border);padding-top:8px;margin-top:4px}
 .unit-card .valor-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
-
-/* ESPELHO */
 .espelho-container{padding:16px}
 .espelho-legenda{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;background:var(--surface);padding:10px 14px;border-radius:12px;border:1px solid var(--border)}
 .leg-item{display:flex;align-items:center;gap:6px;font-size:12px}
@@ -111,8 +102,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .espelho-table td.hmp{background:var(--hmp-bg);color:var(--hmp)}
 .espelho-table td.r2v{background:var(--r2v-bg);color:var(--r2v)}
 .espelho-table td.andar-lbl{background:var(--bg);color:var(--muted);font-weight:600;font-size:10px}
-
-/* INFO */
 .info-container{padding:16px}
 .info-select{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);width:100%;margin-bottom:16px;outline:none}
 .info-cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px}
@@ -123,7 +112,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .info-card .ic-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:500;margin-bottom:6px}
 .info-card .ic-val{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
 .info-card .ic-val.small{font-size:13px}
-
 .dist-section{margin-bottom:20px}
 .dist-section h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:10px}
 .dist-table{width:100%;border-collapse:collapse;font-size:12px}
@@ -138,7 +126,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .badge-his2{background:var(--his2-bg);color:#b45309}
 .badge-hmp{background:var(--hmp-bg);color:var(--hmp)}
 .badge-r2v{background:var(--r2v-bg);color:var(--r2v)}
-
 .tipos-section{margin-bottom:20px}
 .tipos-section h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:10px}
 .tipos-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
@@ -156,8 +143,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .tipo-card .tc-renda{font-size:10px;color:var(--muted);margin-bottom:6px}
 .tipo-card .tc-count{font-size:20px;font-weight:700;margin-bottom:4px}
 .tipo-card .tc-info{font-size:11px;color:var(--muted);line-height:1.6}
-
-/* IMPLANTAÇÃO */
 .implant-container{padding:16px}
 .implant-select{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);width:100%;margin-bottom:16px;outline:none}
 .implant-upload{background:var(--surface);border:2px dashed var(--border);border-radius:16px;padding:32px;display:flex;flex-direction:column;align-items:center;gap:12px;cursor:pointer;transition:border-color .2s;margin-bottom:16px;text-align:center}
@@ -169,19 +154,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .implant-img-wrap img:hover{opacity:.9}
 .implant-img-wrap .hint{font-size:11px;color:var(--muted);margin-top:6px}
 .btn-remover{margin-top:10px;padding:8px 16px;background:#fef2f2;color:var(--his1);border:1px solid var(--his1);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer}
-
-/* LIGHTBOX */
 .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;align-items:center;justify-content:center;padding:20px}
 .lightbox.show{display:flex}
 .lightbox img{max-width:100%;max-height:100%;border-radius:8px;object-fit:contain}
 .lightbox-close{position:absolute;top:16px;right:20px;color:#fff;font-size:32px;cursor:pointer;line-height:1;background:none;border:none;opacity:.8}
 .lightbox-close:hover{opacity:1}
-
 .empty-state{display:flex;flex-direction:column;align-items:center;padding:48px 24px;gap:12px;text-align:center}
 .empty-state .icon{font-size:40px}
 .empty-state h3{font-family:'Syne',sans-serif;font-size:18px}
 .empty-state p{font-size:13px;color:var(--muted)}
-
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--text);color:#fff;padding:10px 22px;border-radius:30px;font-size:13px;opacity:0;transition:all .28s;pointer-events:none;white-space:nowrap;z-index:500;box-shadow:var(--shadow2)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .regiao-badge{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;background:rgba(59,124,244,.1);color:var(--accent);border:1px solid rgba(59,124,244,.3)}
@@ -227,10 +208,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <div class="app-screen" id="appScreen">
   <div class="tabs">
-    <div class="tab active" onclick="mudarAba('busca',this)">🔍 Busca & Filtros</div>
+    <div class="tab active" id="tabBusca" onclick="mudarAba('busca',this)">🔍 Busca & Filtros</div>
     <div class="tab" id="tabEspelho" onclick="mudarAba('espelho',this)" style="display:none">📋 Espelho</div>
-    <div class="tab" onclick="mudarAba('info',this)">ℹ️ Informações</div>
-    <div class="tab" onclick="mudarAba('implant',this)">🗺️ Implantação</div>
+    <div class="tab" id="tabInfo" onclick="mudarAba('info',this)">ℹ️ Informações</div>
+    <div class="tab" id="tabImplant" onclick="mudarAba('implant',this)">🗺️ Implantação</div>
   </div>
 
   <div id="abaBusca">
@@ -285,7 +266,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
-<!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="fecharLightbox()">
   <button class="lightbox-close" onclick="fecharLightbox()">✕</button>
   <img id="lightboxImg" src="" alt="Implantação">
@@ -307,7 +287,7 @@ let todosUnidades=[],todosInfos=[],meta={},regiaoAtiva='',abaAtiva='busca';
 let regioesList=[],atualizandoTudo=false,filaAtualiz=[],idxAtualiz=0;
 let implantacoes=JSON.parse(localStorage.getItem('implantacoes')||'{}');
 let torresData={};
-let projetoAtivo=''; // projeto selecionado globalmente
+let projetoAtivo='';
 let totaisEditaveis=JSON.parse(localStorage.getItem('totaisEditaveis')||'{}');
 
 const CACHE_PFX='tabcache_',CACHE_VER='v2';
@@ -318,14 +298,11 @@ function idadeCache(ts){var m=Math.floor((Date.now()-ts)/60000);if(m<60)return m
 
 function fmtData(v){
   if(!v)return '-';
-  try{
-    var d=new Date(v);
-    if(isNaN(d.getTime()))return String(v);
+  try{var d=new Date(v);if(isNaN(d.getTime()))return String(v);
     var meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
     return meses[d.getUTCMonth()]+'/'+d.getUTCFullYear();
   }catch(e){return String(v);}
 }
-
 function fmtVal(v){return v?'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2}):'-';}
 
 // JSONP
@@ -336,12 +313,10 @@ function jsonp(url,cb,timeout){
     toast('Tempo esgotado. Tente novamente.');esconderProcessando();
     if(atualizandoTudo)proximaAtualiz();
   },timeout);
-  var s=document.createElement('script');
-  s.id='_js';
+  var s=document.createElement('script');s.id='_js';
   s.src=url+(url.indexOf('?')>=0?'&':'?')+'callback='+cb;
   s.onerror=function(){clearTimeout(timer);toast('Erro de conexão.');esconderProcessando();if(atualizandoTudo)proximaAtualiz();};
-  document.head.appendChild(s);
-  window._jsonpTimer=timer;
+  document.head.appendChild(s);window._jsonpTimer=timer;
 }
 function clearJT(){clearTimeout(window._jsonpTimer);var s=document.getElementById('_js');if(s)s.remove();}
 
@@ -409,7 +384,6 @@ function renderCacheLista(){
       +'</div></div>';
   }).join('');
 }
-
 function atualizarCacheRegiao(reg){
   var btn=document.getElementById('cb_'+reg),sEl=document.getElementById('cs_'+reg);
   if(btn){btn.disabled=true;btn.textContent='...';}
@@ -443,7 +417,6 @@ function atualizarCacheRegiao(reg){
   };
   jsonp(WEB_APP_URL+'?acao=extrair&regiao='+encodeURIComponent(reg),cbEx,300000);
 }
-
 function atualizarBadgeGrade(reg,ok){
   document.querySelectorAll('.regiao-card').forEach(function(card){
     var n=card.querySelector('.nome');
@@ -490,33 +463,65 @@ function mostrarApp(){
   document.getElementById('btnTrocarRegiao').style.display='';
   document.getElementById('btnAtualizar').style.display='';
 }
+
+// BUG 5 CORRIGIDO: voltarRegioes limpa todo o estado e reseta para aba Busca
 function voltarRegioes(){
   document.getElementById('appScreen').classList.remove('show');
   document.getElementById('regiaoScreen').style.display='flex';
   document.getElementById('regiaoAtual').style.display='none';
   document.getElementById('btnTrocarRegiao').style.display='none';
   document.getElementById('btnAtualizar').style.display='none';
+  // Limpa estado de dados
   regiaoAtiva='';
+  projetoAtivo='';
+  todosUnidades=[];todosInfos=[];meta={};torresData={};
+  // Reseta aba ativa para Busca
+  abaAtiva='busca';
+  ['abaBusca','abaEspelho','abaInfo','abaImplant'].forEach(function(id){
+    document.getElementById(id).style.display=(id==='abaBusca'?'':'none');
+  });
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.getElementById('tabBusca').classList.add('active');
+  document.getElementById('tabEspelho').style.display='none';
+  // Limpa selects
+  ['espelhoProjeto','infoProjeto','implantProjeto'].forEach(function(id){
+    document.getElementById(id).innerHTML='<option value="">-- Selecione --</option>';
+  });
+  document.getElementById('fProjeto').innerHTML='<option value="">Todos</option>';
+  // Limpa conteúdos
+  document.getElementById('espelhoContent').innerHTML='<div class="empty-state"><div class="icon">📋</div><h3>Selecione um projeto</h3></div>';
+  document.getElementById('infoContent').innerHTML='<div class="empty-state"><div class="icon">ℹ️</div><h3>Selecione um projeto</h3></div>';
+  document.getElementById('implantContent').innerHTML='<div class="empty-state"><div class="icon">🗺️</div><h3>Selecione um projeto</h3></div>';
+  document.getElementById('cardsGrid').innerHTML='';
+  document.getElementById('contagemNum').textContent='0';
 }
+
 function atualizarDados(){if(!regiaoAtiva)return;limparCache(regiaoAtiva);extrairRegiao();}
 
+// BUG 6 CORRIGIDO: projetos em ordem alfabética
 function popularFiltros(){
+  var projetosOrdenados=(meta.projetos||[]).slice().sort(function(a,b){return a.localeCompare(b,'pt-BR');});
   function sel(id,arr,fmt){var el=document.getElementById(id),val=el.value;el.innerHTML='<option value="">Todos</option>'+arr.map(function(v){return '<option value="'+v+'">'+(fmt?fmt(v):v)+'</option>';}).join('');if(val)el.value=val;}
-  sel('fProjeto',meta.projetos||[]);sel('fTorre',meta.torres||[]);
+  sel('fProjeto',projetosOrdenados);
+  sel('fTorre',meta.torres||[]);
   sel('fDorms',meta.dormitorios||[],function(d){return d+' dorm'+(d!==1?'s':'');});
   sel('fTipo',meta.tipos||[]);sel('fAndar',meta.andares||[]);
 }
 function popularSelects(){
-  var opts=(meta.projetos||[]).map(function(p){return '<option value="'+p+'">'+p+'</option>';}).join('');
-  ['espelhoProjeto','infoProjeto','implantProjeto'].forEach(function(id){document.getElementById(id).innerHTML='<option value="">-- Selecione --</option>'+opts;});
+  // BUG 6 CORRIGIDO: ordem alfabética também nos selects das outras abas
+  var projetosOrdenados=(meta.projetos||[]).slice().sort(function(a,b){return a.localeCompare(b,'pt-BR');});
+  var opts=projetosOrdenados.map(function(p){return '<option value="'+p+'">'+p+'</option>';}).join('');
+  ['espelhoProjeto','infoProjeto','implantProjeto'].forEach(function(id){
+    document.getElementById(id).innerHTML='<option value="">-- Selecione --</option>'+opts;
+  });
 }
+
 function aplicarFiltros(){
   var fP=document.getElementById('fProjeto').value,fT=document.getElementById('fTorre').value,
       fD=document.getElementById('fDorms').value,fTi=document.getElementById('fTipo').value,
       fA=document.getElementById('fAndar').value,fVg=document.getElementById('fVagas').value,
       fPr=document.getElementById('fPreco').value;
 
-  // Sincroniza projeto ativo entre abas
   if(fP && fP !== projetoAtivo){
     projetoAtivo = fP;
     sincronizarProjeto(fP);
@@ -524,10 +529,9 @@ function aplicarFiltros(){
     projetoAtivo = '';
   }
 
-  // Filtros dinâmicos baseados no projeto selecionado
   atualizarFiltrosDinamicos(fP);
-
   document.getElementById('tabEspelho').style.display=fP?'':'none';
+
   var fil=todosUnidades.filter(function(u){
     if(fP&&u.projeto!==fP)return false;if(fT&&u.torre!==fT)return false;
     if(fD&&String(u.dorms)!==fD)return false;if(fTi&&u.tipo!==fTi)return false;
@@ -536,8 +540,22 @@ function aplicarFiltros(){
     if(fPr&&u.valor>parseFloat(fPr))return false;
     return true;
   });
-  document.getElementById('contagemNum').textContent=fil.length;renderCards(fil,!fP);
+
+  // BUG 7 CORRIGIDO: ordena cards por projeto > torre > andar > número da unidade
+  fil.sort(function(a,b){
+    if(a.projeto!==b.projeto)return a.projeto.localeCompare(b.projeto,'pt-BR');
+    if(a.torre!==b.torre)return a.torre.localeCompare(b.torre,'pt-BR');
+    var andA=parseInt(String(a.andar))||0, andB=parseInt(String(b.andar))||0;
+    if(andA!==andB)return andA-andB;
+    var numA=parseInt(String(a.unidade).replace(/\D/g,''))||0;
+    var numB=parseInt(String(b.unidade).replace(/\D/g,''))||0;
+    return numA-numB;
+  });
+
+  document.getElementById('contagemNum').textContent=fil.length;
+  renderCards(fil,!fP);
 }
+
 function limparFiltros(){
   ['fProjeto','fTorre','fDorms','fTipo','fAndar','fVagas','fPreco'].forEach(function(id){document.getElementById(id).value='';});
   aplicarFiltros();
@@ -571,7 +589,30 @@ function cardHTML(u){
     +'</div><div class="valor"><div class="valor-label">Valor</div>'+val+'</div></div>';
 }
 
-// ✅ ESPELHO CORRIGIDO
+// ── ESPELHO ── BUGS 2, 3, 4 CORRIGIDOS ──────────────────
+
+// Extrai o número da prumada a partir do código da unidade e do andar
+// Exemplos: unidade=1813, andar=18 → 13 | unidade=906, andar=9 → 6
+//           unidade=1, andar=0(térreo) → 1 | unidade=C220, andar=22 → posição ordinal
+function extrairPrumada(unid,andar){
+  var numStr=unid.replace(/[^0-9]/g,'');
+  if(!numStr)return 0;
+  var num=parseInt(numStr);
+  // Térreo (andar 0): prumada é o próprio número da unidade
+  if(andar===0){return num;}
+  // Andares positivos e negativos: remove prefixo do andar absoluto
+  var andAbs=Math.abs(andar);
+  var andStr=String(andAbs);
+  var numUnidStr=String(num);
+  if(numUnidStr.startsWith(andStr)){
+    var sufixo=numUnidStr.slice(andStr.length);
+    var prum=parseInt(sufixo)||0;
+    if(prum>0)return prum;
+  }
+  // Fallback: retorna o número bruto (ex: unidade=5 no térreo)
+  return num;
+}
+
 function renderEspelho(){
   var proj=document.getElementById('espelhoProjeto').value;
   var cont=document.getElementById('espelhoContent');
@@ -580,7 +621,6 @@ function renderEspelho(){
   var uns=todosUnidades.filter(function(u){return u.projeto===proj;});
   if(!uns.length){cont.innerHTML='<div class="empty-state"><div class="icon">📋</div><h3>Sem unidades disponíveis</h3></div>';return;}
 
-  // Agrupa por torre
   var pt={};
   uns.forEach(function(u){if(!pt[u.torre])pt[u.torre]=[];pt[u.torre].push(u);});
 
@@ -592,13 +632,12 @@ function renderEspelho(){
     +'<div class="leg-item"><div class="leg-dot" style="background:#f1f1f4;border:1px solid var(--border)"></div>Vendida/Vazia</div>'
     +'</div>';
 
-  // Dados da aba TORRES para este projeto
   var projTorresInfo = torresData[proj] ? torresData[proj].torres : {};
 
   Object.entries(pt).sort().forEach(function(entry){
     var torre=entry[0], units=entry[1];
 
-    // Mapa de unidades disponíveis: andar -> unidade -> tipo
+    // Mapa disponíveis: andarKey → unidKey → tipo
     var dispMap={};
     units.forEach(function(u){
       var ak=String(u.andar).trim();
@@ -607,76 +646,63 @@ function renderEspelho(){
       dispMap[ak][uk]=u.tipo;
     });
 
-    // Descobre andares e prumadas da aba TORRES
     var torreInfo=projTorresInfo[torre];
     var totalAndares=torreInfo?torreInfo.andares:0;
     var totalPrumadas=torreInfo?torreInfo.prumadas:0;
 
-    // Se não tem info da aba TORRES, infere dos dados disponíveis
-    if(!totalAndares||!totalPrumadas){
-      // Infere andares — considera negativos também
-      var andNums=units.map(function(u){
-        var a=String(u.andar).trim();
-        return isNaN(parseInt(a))?0:parseInt(a);
-      });
-      var minAnd=Math.min.apply(null,andNums);
-      var maxAnd=Math.max.apply(null,andNums);
-      totalAndares=maxAnd-minAnd+1;
-
-      // Infere prumadas pelo andar com mais unidades
-      var maxPrum=0;
-      Object.keys(dispMap).forEach(function(ak){
-        maxPrum=Math.max(maxPrum,Object.keys(dispMap[ak]).length);
-      });
-      totalPrumadas=maxPrum;
-    }
-
-    // Gera lista de andares — do maior para o menor (inclui negativos)
-    // Detecta o andar máximo e mínimo dos dados reais
+    // Calcula range de andares a partir dos dados reais
     var andNums=units.map(function(u){
-      var a=String(u.andar).trim();
-      return isNaN(parseInt(a))?null:parseInt(a);
+      var n=parseInt(String(u.andar).trim());
+      return isNaN(n)?null:n;
     }).filter(function(a){return a!==null;});
 
-    // Verifica se há andares alfanuméricos (ex: "Térreo", "C-2")
     var andAlfa=units.map(function(u){return String(u.andar).trim();})
-      .filter(function(a){return isNaN(parseInt(a))&&a!=='0';});
+      .filter(function(a){return isNaN(parseInt(a))&&a!==''&&a!=='0';});
 
-    var maxAnd=andNums.length?Math.max.apply(null,andNums):totalAndares;
-    var minAnd=andNums.length?Math.min.apply(null,andNums):1;
+    var maxAndDados=andNums.length?Math.max.apply(null,andNums):0;
+    var minAndDados=andNums.length?Math.min.apply(null,andNums):1;
 
-    // Garante que totalAndares cubra todos os andares reais
-    if(totalAndares<(maxAnd-minAnd+1)) totalAndares=maxAnd-minAnd+1;
+    // BUG 4 CORRIGIDO: usa totalAndares da aba TORRES para mostrar prédio completo
+    // Andar máximo = maior entre dados reais e estrutura da torre
+    var andMax = totalAndares ? Math.max(maxAndDados, totalAndares) : maxAndDados;
+    // Andar mínimo = menor entre dados reais e 1 (mas respeita negativos)
+    var andMin = minAndDados < 0 ? minAndDados : (totalAndares ? Math.min(minAndDados, 1) : minAndDados);
 
-    // Lista de andares ordenada do maior para o menor
+    // BUG 3 CORRIGIDO: andares do maior (topo) para o menor (base), incluindo 0=Térreo no fim
     var andaresList=[];
-    for(var a=maxAnd;a>=minAnd;a--){andaresList.push(a);}
-    // Adiciona andares alfanuméricos no início (acima do positivo máximo)
+    for(var a=andMax;a>=andMin;a--){
+      andaresList.push(a);
+    }
+    // Andares alfanuméricos extras no topo
     andAlfa.forEach(function(a){
       if(andaresList.indexOf(a)<0)andaresList.unshift(a);
     });
 
-    // Gera lista de prumadas (01, 02, ... totalPrumadas)
+    // Infere totalPrumadas se não veio da aba TORRES
+    if(!totalPrumadas){
+      units.forEach(function(u){
+        var andN=parseInt(String(u.andar).trim())||0;
+        var p=extrairPrumada(String(u.unidade).trim(),andN);
+        if(p>totalPrumadas)totalPrumadas=p;
+      });
+      if(!totalPrumadas)totalPrumadas=1;
+    }
+
     var prumadas=[];
     for(var p=1;p<=totalPrumadas;p++){prumadas.push(p);}
 
-    // Para cada andar, mapeia unidade disponível por posição (ordem numérica)
-    function getPosMap(andarKey){
+    // BUG 2 CORRIGIDO: mapeia cada unidade disponível para sua prumada real
+    function getDispPorPrumada(andarKey){
+      var andarN=parseInt(andarKey)||0;
       var unidsDoAndar=dispMap[andarKey]||{};
-      var sorted=Object.keys(unidsDoAndar).sort(function(a,b){
-        // Ordena alfanumerico: letras primeiro, depois números
-        var na=parseInt(String(a).replace(/\D/g,''))||0;
-        var nb=parseInt(String(b).replace(/\D/g,''))||0;
-        return na-nb;
+      var result={};
+      Object.keys(unidsDoAndar).forEach(function(unid){
+        var prum=extrairPrumada(String(unid).trim(),andarN);
+        if(prum>0)result[prum]={tipo:unidsDoAndar[unid],unid:unid};
       });
-      var posMap={};
-      sorted.forEach(function(unid,i){
-        posMap[i+1]={tipo:unidsDoAndar[unid],unid:unid};
-      });
-      return posMap;
+      return result;
     }
 
-    // Monta tabela
     html+='<div class="torre-bloco"><div class="torre-titulo">🏗️ '+torre
       +(torreInfo?' <span style="font-size:11px;color:var(--muted);font-weight:400">'
         +torreInfo.andares+' andares · '+torreInfo.prumadas+' prumadas</span>':'')
@@ -687,14 +713,21 @@ function renderEspelho(){
 
     andaresList.forEach(function(andar){
       var andarKey=String(andar).trim();
-      var andarLbl=andar===0||andarKey==='0'?'Tér.':
-                   andar<0?andar+'º':
-                   isNaN(andar)?andarKey:andar+'º';
-      var posMap=getPosMap(andarKey);
+      var andarLbl;
+      if(andar===0||andarKey==='0'||andarKey.toLowerCase()==='térreo'){
+        andarLbl='Tér.';
+      } else if(typeof andar==='number'&&andar<0){
+        andarLbl=andar+'º';
+      } else if(isNaN(Number(andar))){
+        andarLbl=andarKey;
+      } else {
+        andarLbl=andar+'º';
+      }
 
+      var pruMap=getDispPorPrumada(andarKey);
       html+='<tr><td class="andar-lbl">'+andarLbl+'</td>';
       prumadas.forEach(function(p){
-        var entry=posMap[p];
+        var entry=pruMap[p];
         if(entry){
           html+='<td class="'+entry.tipo.toLowerCase()+'" title="'+entry.tipo+'">'+entry.unid+'</td>';
         }else{
@@ -710,7 +743,55 @@ function renderEspelho(){
   cont.innerHTML=html;
 }
 
-// ✅ INFORMAÇÕES COMPLETAS
+// BUG 1 CORRIGIDO: mudarAba SEMPRE sincroniza e renderiza ao trocar de aba
+function mudarAba(aba,el){
+  abaAtiva=aba;
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  if(el)el.classList.add('active');
+  ['abaBusca','abaEspelho','abaInfo','abaImplant'].forEach(function(id){document.getElementById(id).style.display='none';});
+  document.getElementById('aba'+aba.charAt(0).toUpperCase()+aba.slice(1)).style.display='';
+
+  // Sempre aplica projetoAtivo ao select da aba e renderiza
+  var selId={espelho:'espelhoProjeto',info:'infoProjeto',implant:'implantProjeto'}[aba];
+  if(selId){
+    if(projetoAtivo) document.getElementById(selId).value=projetoAtivo;
+    // Renderiza independente — garante que aba sempre mostre o estado correto
+    if(aba==='espelho')renderEspelho();
+    else if(aba==='info')renderInfo();
+    else if(aba==='implant')renderImplant();
+  }
+}
+
+function sincronizarProjeto(proj){
+  ['espelhoProjeto','infoProjeto','implantProjeto'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)el.value=proj;
+  });
+}
+
+function atualizarFiltrosDinamicos(proj){
+  if(!proj){popularFiltros();return;}
+  var unidsProjeto=todosUnidades.filter(function(u){return u.projeto===proj;});
+  function selDin(id,arr,fmt){
+    var el=document.getElementById(id),val=el.value;
+    el.innerHTML='<option value="">Todos</option>'+arr.map(function(v){
+      return '<option value="'+v+'">'+(fmt?fmt(v):v)+'</option>';
+    }).join('');
+    if(val&&arr.indexOf(val)>=0)el.value=val;
+    else el.value='';
+  }
+  var torres=[...new Set(unidsProjeto.map(function(u){return u.torre;}))].sort();
+  var dorms=[...new Set(unidsProjeto.map(function(u){return u.dorms;}))].sort(function(a,b){return a-b;});
+  var tipos=[...new Set(unidsProjeto.map(function(u){return u.tipo;}))].sort();
+  var andares=[...new Set(unidsProjeto.map(function(u){return String(u.andar)}))].sort(function(a,b){
+    return (parseInt(a)||0)-(parseInt(b)||0);
+  });
+  selDin('fTorre',torres);
+  selDin('fDorms',dorms,function(d){return d+' dorm'+(d!==1?'s':'');});
+  selDin('fTipo',tipos);
+  selDin('fAndar',andares);
+}
+
 function editarTotal(proj){
   var atual=totaisEditaveis[proj]||'';
   var novo=prompt('Total de unidades do projeto "'+proj+'":', atual);
@@ -724,14 +805,10 @@ function editarTotal(proj){
 function renderInfo(){
   var proj=document.getElementById('infoProjeto').value,cont=document.getElementById('infoContent');
   if(!proj){cont.innerHTML='<div class="empty-state"><div class="icon">ℹ️</div><h3>Selecione um projeto</h3></div>';return;}
-
   var info=todosInfos.find(function(i){return i.projeto===proj;})||{};
   var units=todosUnidades.filter(function(u){return u.projeto===proj;});
-  // Busca totalUnid da aba TORRES automaticamente
   var totalTorres = torresData[proj] ? torresData[proj].totalUnid : '';
   var totalEdit=totalTorres||totaisEditaveis[proj]||info.totalUnid||'-';
-
-  // Distribuição por Torre/Tipo
   var dist={};var torres=[];
   units.forEach(function(u){
     if(!dist[u.torre])dist[u.torre]={};
@@ -741,25 +818,18 @@ function renderInfo(){
   });
   torres.sort();
   var tipos=Object.keys(TIPO_CONFIG);
-
-  // Totais por tipo
   var totTipo={};
   tipos.forEach(function(t){
     totTipo[t]=torres.reduce(function(s,tor){return s+(dist[tor]&&dist[tor][t]?dist[tor][t]:0);},0);
   });
   var totGeral=units.length;
-
-  // Range de preços por tipo
   var pr={};
   units.filter(function(u){return u.valor>0;}).forEach(function(u){
     if(!pr[u.tipo])pr[u.tipo]={min:u.valor,max:u.valor};
     pr[u.tipo].min=Math.min(pr[u.tipo].min,u.valor);
     pr[u.tipo].max=Math.max(pr[u.tipo].max,u.valor);
   });
-
   var html='';
-
-  // Cards de info geral
   html+='<div class="info-cards">'
     +'<div class="info-card"><div class="ic-label">Empreendimento</div><div class="ic-val small">'+(info.projeto||proj)+'</div></div>'
     +'<div class="info-card"><div class="ic-label">Incorporadora</div><div class="ic-val small">Plano&Plano</div></div>'
@@ -768,36 +838,27 @@ function renderInfo(){
     +'<div class="info-card"><div class="ic-label">Entrega Prevista</div><div class="ic-val">'+fmtData(info.entrega)+'</div></div>'
     +'<div class="info-card"><div class="ic-label">Torres</div><div class="ic-val">'+(info.torres||torres.length||'-')+'</div></div>'
     +(totalTorres
-    ?'<div class="info-card"><div class="ic-label">Total Unidades</div><div class="ic-val">'+totalEdit+'</div></div>'
-    :'<div class="info-card editavel" onclick="editarTotal(\''+proj+'\')" title="Clique para editar"><div class="ic-label">Total Unidades ✏️</div><div class="ic-val">'+totalEdit+'</div></div>'
-  )
+      ?'<div class="info-card"><div class="ic-label">Total Unidades</div><div class="ic-val">'+totalEdit+'</div></div>'
+      :'<div class="info-card editavel" onclick="editarTotal(\''+proj+'\')" title="Clique para editar"><div class="ic-label">Total Unidades ✏️</div><div class="ic-val">'+totalEdit+'</div></div>'
+    )
     +'<div class="info-card"><div class="ic-label">Disponíveis</div><div class="ic-val">'+units.length+'</div></div>'
     +'<div class="info-card"><div class="ic-label">Área Terreno</div><div class="ic-val small">'+(info.areaTerreno||'-')+'</div></div>'
     +'</div>';
-
-  // Distribuição por Torre/Tipo
   html+='<div class="dist-section"><h3>Distribuição por Torre / Tipo</h3>'
     +'<div style="overflow-x:auto"><table class="dist-table"><thead><tr><th>Torre</th>'
     +tipos.filter(function(t){return totTipo[t]>0;}).map(function(t){
       return '<th><span class="badge-tipo badge-'+t.toLowerCase()+'">'+t+'</span></th>';
-    }).join('')
-    +'<th>Total</th></tr></thead><tbody>';
-
+    }).join('')+'<th>Total</th></tr></thead><tbody>';
   var tiposAtivos=tipos.filter(function(t){return totTipo[t]>0;});
-
   torres.forEach(function(tor){
     var totTor=tiposAtivos.reduce(function(s,t){return s+(dist[tor]&&dist[tor][t]?dist[tor][t]:0);},0);
     html+='<tr><td class="torre-nome">'+tor+'</td>'
       +tiposAtivos.map(function(t){var v=dist[tor]&&dist[tor][t]?dist[tor][t]:0;return '<td>'+(v||'–')+'</td>';}).join('')
       +'<td>'+totTor+'</td></tr>';
   });
-
   html+='<tr><td><strong>Total</strong></td>'
     +tiposAtivos.map(function(t){return '<td>'+totTipo[t]+'</td>';}).join('')
-    +'<td>'+totGeral+'</td></tr>'
-    +'</tbody></table></div></div>';
-
-  // Tipos disponíveis
+    +'<td>'+totGeral+'</td></tr></tbody></table></div></div>';
   html+='<div class="tipos-section"><h3>Tipos de Unidade Disponíveis</h3><div class="tipos-grid">'
     +tipos.map(function(tipo){
       var cfg=TIPO_CONFIG[tipo],cnt=totTipo[tipo]||0,p=pr[tipo];
@@ -807,13 +868,10 @@ function renderInfo(){
         +'<div class="tc-count">'+cnt+' unid.</div>'
         +'<div class="tc-info">'+(p?'De '+fmtVal(p.min)+'<br>Até '+fmtVal(p.max):'Sem disponibilidade')+'</div>'
         +'</div>';
-    }).join('')
-    +'</div></div>';
-
+    }).join('')+'</div></div>';
   cont.innerHTML=html;
 }
 
-// ✅ IMPLANTAÇÃO COM PNG E LIGHTBOX
 function renderImplant(){
   var proj=document.getElementById('implantProjeto').value,cont=document.getElementById('implantContent');
   if(!proj){cont.innerHTML='<div class="empty-state"><div class="icon">🗺️</div><h3>Selecione um projeto</h3></div>';return;}
@@ -831,7 +889,6 @@ function renderImplant(){
         +'<button class="btn-remover" onclick="removerImplant(\''+proj+'\')">🗑️ Remover implantação</button>'
         +'</div>'
       :'<div class="implant-img-wrap"></div>');
-
   setTimeout(function(){
     var inp=document.getElementById('fi_'+proj);
     if(inp)inp.addEventListener('change',function(){uploadImplant(proj,inp);});
@@ -841,17 +898,11 @@ function renderImplant(){
 function uploadImplant(proj,input){
   var f=input.files[0];if(!f)return;
   if(f.size>5*1024*1024){toast('Arquivo muito grande. Use imagem menor que 5MB.');return;}
-
-  // ✅ Redimensiona para max 1200px antes de salvar
-  var img=new Image();
-  var url=URL.createObjectURL(f);
+  var img=new Image();var url=URL.createObjectURL(f);
   img.onload=function(){
     URL.revokeObjectURL(url);
     var maxW=1200,maxH=1200,w=img.width,h=img.height;
-    if(w>maxW||h>maxH){
-      var ratio=Math.min(maxW/w,maxH/h);
-      w=Math.round(w*ratio);h=Math.round(h*ratio);
-    }
+    if(w>maxW||h>maxH){var ratio=Math.min(maxW/w,maxH/h);w=Math.round(w*ratio);h=Math.round(h*ratio);}
     var canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
     var ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,w,h);
     var dataUrl=canvas.toDataURL('image/jpeg',0.85);
@@ -861,8 +912,7 @@ function uploadImplant(proj,input){
       toast('✅ Implantação salva!');renderImplant();
     }catch(e){toast('Erro: imagem muito grande para salvar. Tente uma imagem menor.');}
   };
-  img.onerror=function(){toast('Erro ao ler a imagem.');};
-  img.src=url;
+  img.onerror=function(){toast('Erro ao ler a imagem.');};img.src=url;
 }
 
 function abrirLightbox(proj){
@@ -871,77 +921,9 @@ function abrirLightbox(proj){
   document.getElementById('lightbox').classList.add('show');
 }
 function fecharLightbox(){document.getElementById('lightbox').classList.remove('show');}
-
 function removerImplant(proj){
   delete implantacoes[proj];localStorage.setItem('implantacoes',JSON.stringify(implantacoes));
   renderImplant();toast('Implantação removida');
-}
-
-function mudarAba(aba,el){
-  abaAtiva=aba;
-  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
-  if(el)el.classList.add('active');
-  ['abaBusca','abaEspelho','abaInfo','abaImplant'].forEach(function(id){document.getElementById(id).style.display='none';});
-  document.getElementById('aba'+aba.charAt(0).toUpperCase()+aba.slice(1)).style.display='';
-
-  // Sincroniza projeto ativo ao mudar de aba
-  if(projetoAtivo){
-    var selId={espelho:'espelhoProjeto',info:'infoProjeto',implant:'implantProjeto'}[aba];
-    if(selId){
-      var sel=document.getElementById(selId);
-      if(sel&&sel.value!==projetoAtivo){
-        sel.value=projetoAtivo;
-        // Dispara render automaticamente
-        if(aba==='espelho')renderEspelho();
-        else if(aba==='info')renderInfo();
-        else if(aba==='implant')renderImplant();
-      }
-    }
-  }
-}
-
-// ── SINCRONIZAÇÃO DE PROJETO ENTRE ABAS ─────────────────
-function sincronizarProjeto(proj){
-  // Atualiza selects das outras abas
-  var selects=['espelhoProjeto','infoProjeto','implantProjeto'];
-  selects.forEach(function(id){
-    var el=document.getElementById(id);
-    if(el&&el.value!==proj){
-      el.value=proj;
-      // Dispara render se a aba estiver visível
-    }
-  });
-}
-
-function atualizarFiltrosDinamicos(proj){
-  if(!proj){
-    // Sem projeto — mostra todas as opções
-    popularFiltros();
-    return;
-  }
-  // Com projeto — filtra opções baseado nas unidades do projeto
-  var unidsProjeto=todosUnidades.filter(function(u){return u.projeto===proj;});
-
-  function selDin(id,arr,fmt){
-    var el=document.getElementById(id),val=el.value;
-    el.innerHTML='<option value="">Todos</option>'+arr.map(function(v){
-      return '<option value="'+v+'">'+(fmt?fmt(v):v)+'</option>';
-    }).join('');
-    if(val&&arr.indexOf(val)>=0)el.value=val;
-    else el.value='';
-  }
-
-  var torres=[...new Set(unidsProjeto.map(function(u){return u.torre;}))].sort();
-  var dorms=[...new Set(unidsProjeto.map(function(u){return u.dorms;}))].sort(function(a,b){return a-b;});
-  var tipos=[...new Set(unidsProjeto.map(function(u){return u.tipo;}))].sort();
-  var andares=[...new Set(unidsProjeto.map(function(u){return String(u.andar)}))].sort(function(a,b){
-    return (parseInt(a)||0)-(parseInt(b)||0);
-  });
-
-  selDin('fTorre',torres);
-  selDin('fDorms',dorms,function(d){return d+' dorm'+(d!==1?'s':'');});
-  selDin('fTipo',tipos);
-  selDin('fAndar',andares);
 }
 
 function toast(msg){
