@@ -673,17 +673,20 @@ function renderEspelho(){
     var maxAndDados=andNums.length?Math.max.apply(null,andNums):0;
     var minAndDados=andNums.length?Math.min.apply(null,andNums):1;
 
-    // BUG 4 CORRIGIDO: usa totalAndares da aba TORRES para mostrar prédio completo
+    // Detecta se há térreo (andar 0) nos dados
+    var temTerreo = andNums.indexOf(0) >= 0;
+
     // Andar máximo = maior entre dados reais e estrutura da torre
     var andMax = totalAndares ? Math.max(maxAndDados, totalAndares) : maxAndDados;
-    // Andar mínimo = menor entre dados reais e 1 (mas respeita negativos)
-    var andMin = minAndDados < 0 ? minAndDados : (totalAndares ? Math.min(minAndDados, 1) : minAndDados);
+    // Loop sempre começa no andMax e vai até 1 (nunca inclui 0 aqui)
+    var andMinLoop = minAndDados < 0 ? minAndDados : 1;
 
-    // BUG 3 CORRIGIDO: andares do maior (topo) para o menor (base), incluindo 0=Térreo no fim
+    // Térreo (0) sempre no fim — adicionado manualmente após o andar 1
     var andaresList=[];
-    for(var a=andMax;a>=andMin;a--){
+    for(var a=andMax;a>=andMinLoop;a--){
       andaresList.push(a);
     }
+    if(temTerreo) andaresList.push(0);
     // Andares alfanuméricos extras no topo
     andAlfa.forEach(function(a){
       if(andaresList.indexOf(a)<0)andaresList.unshift(a);
