@@ -909,7 +909,7 @@ function renderImplant(){
   cont.innerHTML='<div class="implant-upload" onclick="document.getElementById(\'fi_'+proj+'\').click()">'
     +'<div style="font-size:40px">📎</div>'
     +'<p>'+(img?'Clique para substituir':'Selecione a imagem da implantação')+'</p>'
-    +'<input type="file" id="fi_'+proj+'" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" style="display:none">'
+    +'<input type="file" id="fi_'+proj+'" accept="image/*" style="display:none">'
     +'<span style="font-size:11px;color:var(--muted)">JPG, PNG, GIF ou WebP</span>'
     +'</div>'
     +(img
@@ -935,7 +935,9 @@ function uploadImplant(proj,input){
     if(w>maxW||h>maxH){var ratio=Math.min(maxW/w,maxH/h);w=Math.round(w*ratio);h=Math.round(h*ratio);}
     var canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
     var ctx=canvas.getContext('2d');ctx.drawImage(img,0,0,w,h);
-    var dataUrl=canvas.toDataURL('image/jpeg',0.85);
+    var mime=f.type&&f.type.startsWith('image/')?f.type:'image/jpeg';
+    var q=(mime==='image/jpeg'||mime==='image/webp')?0.85:1;
+    var dataUrl=canvas.toDataURL(mime,q);
     try{
       implantacoes[proj]=dataUrl;
       localStorage.setItem('implantacoes',JSON.stringify(implantacoes));
