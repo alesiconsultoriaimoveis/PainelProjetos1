@@ -129,19 +129,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .tipos-section{margin-bottom:20px}
 .tipos-section h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:10px}
 .tipos-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-@media(min-width:600px){.tipos-grid{grid-template-columns:repeat(4,1fr)}}
-.tipo-card{border-radius:14px;padding:14px;border:1.5px solid var(--border)}
+@media(min-width:600px){.tipos-grid{grid-template-columns:repeat(2,1fr)}}
+.tipo-card{border-radius:14px;padding:14px;border:1.5px solid var(--border);display:flex;gap:10px;flex-wrap:wrap}
 .tipo-card.his1{background:var(--his1-bg);border-color:var(--his1)}
 .tipo-card.his2{background:var(--his2-bg);border-color:var(--his2)}
 .tipo-card.hmp{background:var(--hmp-bg);border-color:var(--hmp)}
 .tipo-card.r2v{background:var(--r2v-bg);border-color:var(--r2v)}
-.tipo-card .tc-badge{font-size:12px;font-weight:700;margin-bottom:4px}
+.tc-dorm-col{flex:1;min-width:120px}
+.tc-dorm-col+.tc-dorm-col{border-left:1px solid rgba(0,0,0,.08);padding-left:10px}
+.tipo-card .tc-badge{font-size:12px;font-weight:700;margin-bottom:2px}
 .tipo-card.his1 .tc-badge{color:var(--his1)}
 .tipo-card.his2 .tc-badge{color:#b45309}
 .tipo-card.hmp .tc-badge{color:var(--hmp)}
 .tipo-card.r2v .tc-badge{color:var(--r2v)}
 .tipo-card .tc-renda{font-size:10px;color:var(--muted);margin-bottom:6px}
-.tipo-card .tc-count{font-size:20px;font-weight:700;margin-bottom:4px}
+.tipo-card .tc-count{font-size:18px;font-weight:700;margin-bottom:4px}
 .tipo-card .tc-info{font-size:11px;color:var(--muted);line-height:1.6}
 .implant-container{padding:16px}
 .implant-select{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);width:100%;margin-bottom:16px;outline:none}
@@ -859,15 +861,43 @@ function renderInfo(){
   html+='<tr><td><strong>Total</strong></td>'
     +tiposAtivos.map(function(t){return '<td>'+totTipo[t]+'</td>';}).join('')
     +'<td>'+totGeral+'</td></tr></tbody></table></div></div>';
+  // Monta mapa tipo+dorms → {count, min, max}
+  var dormsPorTipo={};
+  units.filter(function(u){return u.valor>0;}).forEach(function(u){
+    var k=u.tipo;
+    var d=Number(u.dorms);
+    if(!dormsPorTipo[k])dormsPorTipo[k]={};
+    if(!dormsPorTipo[k][d])dormsPorTipo[k][d]={count:0,min:u.valor,max:u.valor};
+    dormsPorTipo[k][d].count++;
+    dormsPorTipo[k][d].min=Math.min(dormsPorTipo[k][d].min,u.valor);
+    dormsPorTipo[k][d].max=Math.max(dormsPorTipo[k][d].max,u.valor);
+  });
+  // Conta unidades sem valor também (sem filtrar por valor)
+  var countPorTipoDorm={};
+  units.forEach(function(u){
+    var k=u.tipo; var d=Number(u.dorms);
+    if(!countPorTipoDorm[k])countPorTipoDorm[k]={};
+    countPorTipoDorm[k][d]=(countPorTipoDorm[k][d]||0)+1;
+  });
+
   html+='<div class="tipos-section"><h3>Tipos de Unidade Disponíveis</h3><div class="tipos-grid">'
     +tipos.map(function(tipo){
-      var cfg=TIPO_CONFIG[tipo],cnt=totTipo[tipo]||0,p=pr[tipo];
-      return '<div class="tipo-card '+cfg.cls+'">'
-        +'<div class="tc-badge">'+tipo+'</div>'
-        +'<div class="tc-renda">'+cfg.renda+'</div>'
-        +'<div class="tc-count">'+cnt+' unid.</div>'
-        +'<div class="tc-info">'+(p?'De '+fmtVal(p.min)+'<br>Até '+fmtVal(p.max):'Sem disponibilidade')+'</div>'
-        +'</div>';
+      var cfg=TIPO_CONFIG[tipo];
+      if(!totTipo[tipo])return ''; // pula tipo sem unidades
+      // Lista de dormitórios presentes neste tipo, ordenada
+      var dormsDisponiveis=Object.keys(countPorTipoDorm[tipo]||{})
+        .map(Number).sort(function(a,b){return a-b;});
+      var colsHTML=dormsDisponiveis.map(function(d){
+        var cnt=(countPorTipoDorm[tipo]&&countPorTipoDorm[tipo][d])||0;
+        var pd=dormsPorTipo[tipo]&&dormsPorTipo[tipo][d];
+        return '<div class="tc-dorm-col">'
+          +'<div class="tc-badge">'+tipo+' · '+d+' dorm'+(d!==1?'s':'')+'</div>'
+          +'<div class="tc-renda">'+cfg.renda+'</div>'
+          +'<div class="tc-count">'+cnt+' unid.</div>'
+          +'<div class="tc-info">'+(pd?'De '+fmtVal(pd.min)+'<br>Até '+fmtVal(pd.max):'Sem valor cadastrado')+'</div>'
+          +'</div>';
+      }).join('');
+      return '<div class="tipo-card '+cfg.cls+'">'+colsHTML+'</div>';
     }).join('')+'</div></div>';
   cont.innerHTML=html;
 }
