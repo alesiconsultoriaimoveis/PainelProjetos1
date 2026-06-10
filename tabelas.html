@@ -147,15 +147,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .tipo-card .tc-info{font-size:11px;color:var(--muted);line-height:1.6}
 .implant-container{padding:16px}
 .implant-select{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);width:100%;margin-bottom:16px;outline:none}
-.implant-upload{background:var(--surface);border:2px dashed var(--border);border-radius:16px;padding:32px;display:flex;flex-direction:column;align-items:center;gap:12px;cursor:pointer;transition:border-color .2s;margin-bottom:16px;text-align:center}
-.implant-upload:hover{border-color:var(--accent)}
-.implant-upload p{font-size:14px;color:var(--muted)}
 .implant-img-wrap{display:none;position:relative;margin-bottom:16px}
 .implant-img-wrap.show{display:block}
-.implant-img-wrap img{width:50%;display:block;border-radius:12px;border:1px solid var(--border);cursor:zoom-in;transition:opacity .15s}
+.implant-img-wrap img{width:100%;display:block;border-radius:12px;border:1px solid var(--border);cursor:zoom-in;transition:opacity .15s}
 .implant-img-wrap img:hover{opacity:.9}
-.implant-img-wrap .hint{font-size:11px;color:var(--muted);margin-top:6px}
-.btn-remover{margin-top:10px;padding:8px 16px;background:#fef2f2;color:var(--his1);border:1px solid var(--his1);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer}
+.implant-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-bottom:8px}
+.btn-trocar{padding:6px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s}
+.btn-trocar:hover{border-color:var(--accent);color:var(--accent)}
+.btn-remover{padding:6px 12px;background:#fef2f2;color:var(--his1);border:1px solid #fecaca;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer}
+.implant-hint{font-size:11px;color:var(--muted);margin-top:6px}
+.implant-empty{background:var(--surface);border:2px dashed var(--border);border-radius:16px;padding:48px 24px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:border-color .2s;text-align:center}
+.implant-empty:hover{border-color:var(--accent)}
+.implant-empty p{font-size:14px;color:var(--muted)}
+.implant-empty span{font-size:11px;color:var(--muted)}
 .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;align-items:center;justify-content:center;padding:20px}
 .lightbox.show{display:flex}
 .lightbox img{max-width:100%;max-height:100%;border-radius:8px;object-fit:contain}
@@ -918,19 +922,28 @@ function renderImplant(){
   var proj=document.getElementById('implantProjeto').value,cont=document.getElementById('implantContent');
   if(!proj){cont.innerHTML='<div class="empty-state"><div class="icon">🗺️</div><h3>Selecione um projeto</h3></div>';return;}
   var img=implantacoes[proj];
-  cont.innerHTML='<div class="implant-upload" onclick="document.getElementById(\'fi_'+proj+'\').click()">'
-    +'<div style="font-size:40px">📎</div>'
-    +'<p>'+(img?'Clique para substituir':'Selecione a imagem da implantação')+'</p>'
-    +'<input type="file" id="fi_'+proj+'" accept="image/*" style="display:none">'
-    +'<span style="font-size:11px;color:var(--muted)">JPG, PNG, GIF ou WebP</span>'
-    +'</div>'
-    +(img
-      ?'<div class="implant-img-wrap show">'
+  if(img){
+    // Tem imagem: mostra em destaque com botões discretos acima
+    cont.innerHTML=''
+      +'<input type="file" id="fi_'+proj+'" accept="image/*" style="display:none">'
+      +'<div class="implant-toolbar">'
+        +'<button class="btn-trocar" onclick="document.getElementById(\'fi_'+proj+'\').click()">📎 Trocar imagem</button>'
+        +'<button class="btn-remover" onclick="removerImplant(\''+proj+'\')">🗑️ Remover</button>'
+      +'</div>'
+      +'<div class="implant-img-wrap show">'
         +'<img src="'+img+'" alt="Implantação" onclick="abrirLightbox(\''+proj+'\')" title="Clique para ampliar">'
-        +'<div class="hint">🔍 Clique na imagem para ver em tela cheia</div>'
-        +'<button class="btn-remover" onclick="removerImplant(\''+proj+'\')">🗑️ Remover implantação</button>'
-        +'</div>'
-      :'<div class="implant-img-wrap"></div>');
+        +'<div class="implant-hint">🔍 Clique na imagem para ver em tela cheia</div>'
+      +'</div>';
+  }else{
+    // Sem imagem: área de upload centralizada
+    cont.innerHTML=''
+      +'<input type="file" id="fi_'+proj+'" accept="image/*" style="display:none">'
+      +'<div class="implant-empty" onclick="document.getElementById(\'fi_'+proj+'\').click()">'
+        +'<div style="font-size:40px">🗺️</div>'
+        +'<p>Adicionar imagem de implantação</p>'
+        +'<span>JPG, PNG, WebP ou GIF</span>'
+      +'</div>';
+  }
   setTimeout(function(){
     var inp=document.getElementById('fi_'+proj);
     if(inp)inp.addEventListener('change',function(){uploadImplant(proj,inp);});
