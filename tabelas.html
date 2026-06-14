@@ -677,21 +677,34 @@ function renderEspelho(){
     var maxAndDados=andNums.length?Math.max.apply(null,andNums):0;
     var minAndDados=andNums.length?Math.min.apply(null,andNums):1;
 
-    // Detecta se há térreo (andar 0) nos dados
-    var temTerreo = andNums.indexOf(0) >= 0;
+    // Detecta térreo — pode vir como 0 (número), "0" ou "Térreo" (string)
+    var terreoKey = null;
+    if(andNums.indexOf(0) >= 0) terreoKey = '0';
+    if(!terreoKey) {
+      units.forEach(function(u){
+        var a = String(u.andar).trim();
+        if(a.toLowerCase() === 'térreo' || a.toLowerCase() === 'terreo' || a === '0') {
+          terreoKey = a;
+        }
+      });
+    }
 
-    // Andar máximo = maior entre dados reais e estrutura da torre
+    // Remove térreo dos andAlfa para não ir pro unshift (topo)
+    andAlfa = andAlfa.filter(function(a){
+      var al = a.toLowerCase();
+      return al !== 'térreo' && al !== 'terreo' && al !== '0';
+    });
+
     var andMax = totalAndares ? Math.max(maxAndDados, totalAndares) : maxAndDados;
-    // Loop sempre começa no andMax e vai até 1 (nunca inclui 0 aqui)
     var andMinLoop = minAndDados < 0 ? minAndDados : 1;
 
-    // Térreo (0) sempre no fim — adicionado manualmente após o andar 1
     var andaresList=[];
     for(var a=andMax;a>=andMinLoop;a--){
       andaresList.push(a);
     }
-    if(temTerreo) andaresList.push(0);
-    // Andares alfanuméricos extras no topo
+    // Térreo sempre por último — usa a chave real (0, "0" ou "Térreo")
+    if(terreoKey !== null) andaresList.push(terreoKey);
+    // Andares alfanuméricos extras (que não são térreo) no topo
     andAlfa.forEach(function(a){
       if(andaresList.indexOf(a)<0)andaresList.unshift(a);
     });
