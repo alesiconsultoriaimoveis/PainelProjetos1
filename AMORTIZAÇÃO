@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador PRICE — Financiamento + Amortização</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px;
+       background: #c8d0d8; color: #111; }
+
+/* ── LOGIN ─────────────────────────────────── */
+#login-screen {
+  position: fixed; inset: 0; background: #0d1b2a;
+  display: flex; align-items: center; justify-content: center; z-index: 9999;
+}
+.login-box {
+  background: #1b2e4b; border-radius: 12px; padding: 48px 40px;
+  width: 340px; text-align: center; border: 1px solid #2a4a7a;
+  box-shadow: 0 24px 60px rgba(0,0,0,.6);
+}
+.login-box h1 { color: #f5c518; font-size: 18px; letter-spacing: 2px;
+                text-transform: uppercase; margin-bottom: 4px; }
+.login-box p  { color: #8a9cc0; font-size: 11px; margin-bottom: 28px; }
+.login-box input {
+  width: 100%; padding: 13px; border-radius: 8px; margin-bottom: 14px;
+  border: 1.5px solid #2a4a7a; background: #0d1b2a; color: #fff;
+  font-size: 24px; text-align: center; letter-spacing: 8px;
+  text-transform: uppercase; outline: none;
+}
+.login-box input:focus { border-color: #f5c518; }
+.login-box button {
+  width: 100%; padding: 13px; border-radius: 8px; border: none;
+  background: #f5c518; color: #0d1b2a; font-size: 13px; font-weight: 700;
+  cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+}
+.login-box button:hover { background: #e0b010; }
+#login-error { color: #ff6b6b; font-size: 11px; margin-top: 10px; display:none; }
+.login-date  { color: #3a5070; font-size: 10px; margin-top: 20px; }
+
+/* ── APP ────────────────────────────────────── */
+#app { display: none; }
+
+/* Barra de título */
+.app-header {
+  background: #0d1b2a; padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 3px solid #f5c518;
+}
+.app-header h1 { color: #f5c518; font-size: 13px; letter-spacing: 1px;
+                 text-transform: uppercase; font-weight: 700; }
+.app-header span { color: #3a5070; font-size: 10px; }
+
+/* ── GRADE DE PARÂMETROS (imita planilha) ─── */
+.params-section { background: #fff; border-bottom: 2px solid #888; }
+
+.params-grid {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 11px;
+}
+.params-grid td {
+  border: 1px solid #555;
+  padding: 4px 7px;
+  white-space: nowrap;
+}
+/* Células de label (fundo escuro) */
+.params-grid .L {
+  background: #111; color: #fff;
+  font-weight: 600; font-size: 10px;
+  text-align: right; text-transform: uppercase; letter-spacing: .3px;
+}
+/* R$ label */
+.params-grid .RS {
+  background: #111; color: #fff;
+  text-align: center; font-size: 10px; font-weight: 600; width: 26px;
+}
+/* Células de valor calculado */
+.params-grid .V {
+  background: #f0f0f0; font-weight: 700; text-align: right;
+  font-size: 12px; color: #111; min-width: 90px;
+}
+/* Células de input (rosa) */
+.params-grid .I {
+  background: #ffd6d6; font-weight: 700;
+  padding: 0; min-width: 90px;
+}
+.params-grid .I input {
+  width: 100%; height: 100%; padding: 4px 7px;
+  border: none; background: transparent; outline: none;
+  font-size: 12px; font-weight: 700; text-align: right;
+  color: #111; cursor: text;
+}
+/* Célula de PMT (destaque azul) */
+.params-grid .PMT {
+  background: #dce8ff; font-weight: 700; text-align: center;
+  font-size: 14px; color: #1a3a8a;
+}
+/* Célula de valor destaque (fundo diferente) */
+.params-grid .HI {
+  background: #fff8e0; font-weight: 700; text-align: right;
+  font-size: 12px; color: #333; min-width: 90px;
+}
+
+/* ── SEÇÃO DA TABELA ────────────────────────── */
+.table-wrap {
+  overflow: auto;
+  max-height: calc(100vh - 170px);
+  background: #fff;
+}
+table.data { border-collapse: collapse; width: 100%; min-width: 1500px; }
+
+/* Linha de seção (FINANCIAMENTO ORIGINAL / COM AMORT) */
+table.data thead tr.sec-row th {
+  padding: 5px 6px; font-size: 11px; font-weight: 700;
+  letter-spacing: .5px; border: 1px solid #333;
+}
+.th-orig { background: #1b2e4b; color: #fff; }
+.th-amort-hdr { background: #1a3a00; color: #b8ff78; }
+.th-novo  { background: #0d2a1a; color: #4ddb7a; }
+.th-sep   { background: #111; width: 5px; padding: 0 !important; }
+
+/* Linha de colunas */
+table.data thead tr.col-row th {
+  position: sticky; top: 0; z-index: 10;
+  padding: 5px 5px; font-size: 9px; font-weight: 700;
+  text-align: center; text-transform: uppercase;
+  letter-spacing: .2px; border: 1px solid #444;
+  white-space: nowrap; line-height: 1.3;
+}
+.ch-orig  { background: #253a5a; color: #d0e0ff; }
+.ch-amort { background: #1a3a00; color: #c8ff88; }
+.ch-novo  { background: #0d2a1a; color: #88ffcc; }
+.ch-sep   { background: #111; width: 5px; }
+
+/* Células de dados */
+table.data td {
+  padding: 3px 5px; text-align: right;
+  border-right: 1px solid #e0e4e8; border-bottom: 1px solid #e0e4e8;
+  font-size: 11px; white-space: nowrap;
+}
+table.data td.cn  { text-align: center; }
+table.data td.sep { background: #111 !important; width: 5px; padding: 0; }
+table.data td.bold{ font-weight: 700; }
+
+/* Cores alternadas */
+tr.par  td:not(.sep):not(.ja) { background: #fff; }
+tr.impar td:not(.sep):not(.ja) { background: #f5f7f9; }
+tr.par  td.novo { background: #f8fff8; }
+tr.impar td.novo { background: #f0faf0; }
+
+/* Estado inicial */
+tr.ei td { background: #e8edf2 !important; color: #888;
+           font-style: italic; font-size: 10px; }
+
+/* Amort. adic — input cell (verde) */
+td.ja {
+  background: #fffff0 !important;
+  padding: 1px 3px;
+  border-left: 2px solid #aaaa00 !important;
+  border-right: 2px solid #aaaa00 !important;
+}
+td.ja input {
+  width: 100%; border: 1px solid #cccc00; border-radius: 3px;
+  padding: 2px 5px; font-size: 11px; font-weight: 700;
+  background: #fffff0; text-align: right; outline: none; color: #1a5c00;
+}
+td.ja input:focus { background: #f0ffe0; border-color: #448800; }
+td.ja input::placeholder { color: #ccc; font-weight: 400; }
+
+/* Conclusão */
+td.concl { text-align: center; font-size: 10px; font-weight: 600; color: #bbb; }
+
+/* Totais */
+tr.tot td { background: #1b2e4b !important; color: #f5c518 !important;
+            font-weight: 700; font-size: 11px; border-color: #2a3a50; }
+tr.tot td.ja { background: #1a3a00 !important; color: #b8ff78 !important;
+               border-color: #336600; }
+tr.tot td.sep { background: #111 !important; }
+tr.tot td.concl { color: #f5c518 !important; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>Simulador PRICE</h1>
+    <p>Acesso restrito — Financiamento + Amortização</p>
+    <input type="password" id="senha-input" maxlength="8" placeholder="· · · · ·"
+           onkeydown="if(event.key==='Enter')checkSenha()">
+    <button onclick="checkSenha()">Entrar →</button>
+    <div id="login-error">Senha incorreta. Verifique com o responsável.</div>
+    <div class="login-date" id="login-date"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- Título -->
+  <div class="app-header">
+    <h1>Simulador Price — Financiamento + Amortização Adicional</h1>
+    <span id="hdr-date"></span>
+  </div>
+
+  <!-- ═══ GRADE DE PARÂMETROS (estilo planilha) ═══ -->
+  <div class="params-section">
+   <table class="params-grid">
+    <tbody>
+     <!-- LINHA 1 -->
+     <tr>
+      <td class="L" style="width:130px">Prazo (meses)</td>
+      <td class="I" style="width:60px"><input id="inp-prazo" type="number" value="420" min="12" max="480" oninput="renderTable();recalc()"></td>
+      <td class="L" style="width:110px">$ Financiado</td>
+      <td class="RS">R$</td>
+      <td class="I" style="width:100px"><input id="inp-vf" type="number" value="226000" step="1000" oninput="recalc()"></td>
+      <td class="L" rowspan="3" style="width:110px;text-align:center">PARCELA<br>FINANCIAM.</td>
+      <td class="PMT" rowspan="3" style="width:90px" id="disp-pmt">—</td>
+      <td class="L" style="width:120px">Economia Juros</td>
+      <td class="RS">R$</td>
+      <td class="HI" style="width:100px" id="st-econ">R$ 0,00</td>
+      <td class="L" style="width:120px">Amortizado (R$)</td>
+      <td class="RS">R$</td>
+      <td class="HI" style="width:100px" id="st-amort">R$ 0,00</td>
+      <td class="L" style="width:170px">Prazo Atual (meses/anos)</td>
+      <td class="V" style="width:80px" id="st-prazo">420 / 35</td>
+      <td class="L" style="width:150px">Economia Sobre Total</td>
+      <td class="V" style="width:70px" id="st-pct-econ">0,00%</td>
+     </tr>
+     <!-- LINHA 2 -->
+     <tr>
+      <td class="L">Juros Efetivos a.a.</td>
+      <td class="I"><input id="inp-juros" type="number" value="8.47" step="0.01" oninput="recalc()"></td>
+      <td class="L">Juros Contrato</td>
+      <td class="RS"></td>
+      <td class="V" id="disp-juros-orig">—</td>
+      <!-- PMT rowspan -->
+      <td class="L">Juros Pagos</td>
+      <td class="RS">R$</td>
+      <td class="V" id="st-juros-novo">—</td>
+      <td class="L" colspan="3" style="text-align:center;color:#555;font-size:9px">—</td>
+      <td class="L">% Redução de Juros</td>
+      <td class="V" id="st-pct-juros">0,00%</td>
+     </tr>
+     <!-- LINHA 3 -->
+     <tr>
+      <td class="L">Juros Mensais</td>
+      <td class="V" id="disp-taxa">—</td>
+      <td class="L">Total a Pagar</td>
+      <td class="RS"></td>
+      <td class="V" id="disp-total-orig">—</td>
+      <!-- PMT rowspan -->
+      <td class="L">Total Pago</td>
+      <td class="RS">R$</td>
+      <td class="V" id="st-total-novo">—</td>
+      <td class="L">Redução Parcelas</td>
+      <td class="V" colspan="2" id="st-red">0 / 0</td>
+      <td class="L">% Redução de Parcelas</td>
+      <td class="V" id="st-pct-parc">0,00%</td>
+     </tr>
+    </tbody>
+   </table>
+  </div>
+
+  <!-- ═══ TABELA DE DADOS ═══ -->
+  <div class="table-wrap">
+   <table class="data" id="main-table">
+    <thead>
+     <!-- Linha 1: seções -->
+     <tr class="sec-row">
+      <th class="th-orig" colspan="2">​</th><!-- parc + faltam -->
+      <th class="th-orig" colspan="6">FINANCIAMENTO ORIGINAL (PRICE)</th>
+      <th class="th-sep"></th>
+      <th class="th-amort-hdr">AMORT.<br>ADIC.</th>
+      <th class="th-novo" colspan="7">COM AMORTIZAÇÃO ADICIONAL</th>
+     </tr>
+     <!-- Linha 2: colunas -->
+     <tr class="col-row">
+      <th class="ch-orig" style="width:46px">Parc.</th>
+      <th class="ch-orig" style="width:46px">Faltam</th>
+      <th class="ch-orig" style="min-width:105px">SD. Dev.<br>Incial</th>
+      <th class="ch-orig" style="min-width:100px">Juros</th>
+      <th class="ch-orig" style="min-width:105px">Saldo<br>Atual</th>
+      <th class="ch-orig" style="min-width:100px">Amortiz.</th>
+      <th class="ch-orig" style="min-width:100px">Parcela</th>
+      <th class="ch-orig" style="min-width:105px">SD. Dev.<br>Atual</th>
+      <th class="ch-sep"></th>
+      <th class="ch-amort" style="min-width:108px">← Digite<br>o valor</th>
+      <th class="ch-novo" style="min-width:105px">SD. Dev.<br>Incial</th>
+      <th class="ch-novo" style="min-width:100px">Juros</th>
+      <th class="ch-novo" style="min-width:105px">Saldo<br>Atual</th>
+      <th class="ch-novo" style="min-width:100px">Amortiz.</th>
+      <th class="ch-novo" style="min-width:100px">Nova<br>Parc.</th>
+      <th class="ch-novo" style="min-width:105px">SD. Dev.<br>Atual</th>
+      <th class="ch-novo" style="min-width:76px">Status</th>
+     </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+   </table>
+  </div>
+
+</div><!-- #app -->
+
+<script>
+// ══════════════════════════════════════════════
+// TROQUE ESTA CHAVE (igual no admin_senha.html)
+// ══════════════════════════════════════════════
+const SECRET_KEY = "4503ALESI26";
+
+/* ── Senha diária ── */
+function getSenha(offset=0){
+  const d=new Date(); d.setDate(d.getDate()+offset);
+  const seed=SECRET_KEY+String(d.getDate()).padStart(2,'0')+String(d.getMonth()+1).padStart(2,'0')+d.getFullYear();
+  let h=5381;
+  for(let i=0;i<seed.length;i++) h=(Math.imul(h,33)^seed.charCodeAt(i))>>>0;
+  const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let p='',n=h;
+  for(let i=0;i<5;i++){p+=c[n%c.length];n=Math.floor(n/c.length);}
+  return p;
+}
+
+function checkSenha(){
+  const v=document.getElementById('senha-input').value.toUpperCase().trim();
+  if(v===getSenha()){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    init();
+  } else {
+    document.getElementById('login-error').style.display='block';
+    document.getElementById('senha-input').value='';
+    document.getElementById('senha-input').focus();
+  }
+}
+
+/* ── Data ── */
+(()=>{
+  const d=new Date();
+  const s=d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
+  document.getElementById('login-date').textContent='Acesso válido: '+s;
+  document.getElementById('hdr-date').textContent=s;
+})();
+
+/* ── Formato BRL ── */
+const fmt=v=>isNaN(v)||v===null?'—':v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtPct=v=>((v||0)*100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
+
+/* ── Cálculo PRICE ── */
+const getTaxa=aa=>Math.pow(1+aa/100,1/12)-1;
+const getPMT=(vf,t,n)=>t===0?vf/n:vf*t/(1-Math.pow(1+t,-n));
+
+let extraAmort=[];
+
+/* ── Renderiza tabela (estrutura) ── */
+function renderTable(){
+  const prazo=parseInt(document.getElementById('inp-prazo').value)||420;
+  const old=[...extraAmort];
+  extraAmort=Array.from({length:prazo},(_,i)=>old[i]||0);
+
+  let h='';
+  // Estado inicial
+  h+=`<tr class="ei">
+    <td class="cn bold" colspan="2">Estado Inicial</td>
+    <td id="ei-d"></td><td class="cn">0,00</td><td id="ei-f"></td>
+    <td class="cn">0,00</td><td class="cn">0,00</td><td id="ei-i"></td>
+    <td class="sep"></td>
+    <td class="ja cn">0,00</td>
+    <td id="ei-k"></td><td class="cn">0,00</td><td id="ei-m"></td>
+    <td class="cn">0,00</td><td class="cn">0,00</td><td id="ei-p"></td>
+    <td class="concl">INÍCIO</td>
+  </tr>`;
+
+  for(let i=0;i<prazo;i++){
+    const cls=i%2===0?'par':'impar';
+    const val=extraAmort[i]||'';
+    h+=`<tr class="${cls}" id="row${i}">
+      <td class="cn bold">${i+1}</td>
+      <td class="cn" id="r${i}c"></td>
+      <td id="r${i}d"></td><td id="r${i}e"></td>
+      <td id="r${i}f"></td><td id="r${i}g"></td>
+      <td id="r${i}h"></td><td id="r${i}i"></td>
+      <td class="sep"></td>
+      <td class="ja"><input type="number" min="0" step="500" placeholder="0"
+        value="${val}" id="j${i}"
+        oninput="extraAmort[${i}]=parseFloat(this.value)||0;recalc()"
+        onkeydown="if(event.key==='Enter'){const nx=document.getElementById('j${i+1}');if(nx){nx.focus();nx.select();}}"
+      ></td>
+      <td class="novo" id="r${i}k"></td><td class="novo" id="r${i}l"></td>
+      <td class="novo" id="r${i}m"></td><td class="novo" id="r${i}n"></td>
+      <td class="novo" id="r${i}o"></td><td class="novo" id="r${i}p"></td>
+      <td class="concl" id="r${i}q">—</td>
+    </tr>`;
+  }
+
+  // Totais
+  h+=`<tr class="tot">
+    <td class="cn" colspan="2">TOTAIS</td>
+    <td></td><td id="tot-e"></td><td></td><td id="tot-g"></td>
+    <td id="tot-h"></td><td></td>
+    <td class="sep"></td>
+    <td class="ja" id="tot-j"></td>
+    <td></td><td id="tot-l"></td><td></td>
+    <td id="tot-n"></td><td id="tot-o"></td><td></td>
+    <td class="concl">—</td>
+  </tr>`;
+
+  document.getElementById('tbody').innerHTML=h;
+}
+
+/* ── Recalculo ── */
+function recalc(){
+  const prazo=parseInt(document.getElementById('inp-prazo').value)||420;
+  const jAA  =parseFloat(document.getElementById('inp-juros').value)||8.47;
+  const vf   =parseFloat(document.getElementById('inp-vf').value)||226000;
+  const taxa =getTaxa(jAA);
+  const pmt  =getPMT(vf,taxa,prazo);
+
+  // Topo
+  const s=id=>document.getElementById(id);
+  s('disp-pmt').textContent='R$ '+fmt(pmt);
+  s('disp-taxa').textContent=fmtPct(taxa);
+  s('disp-juros-orig').textContent='R$ '+fmt(pmt*prazo-vf);
+  s('disp-total-orig').textContent='R$ '+fmt(pmt*prazo);
+
+  // Estado inicial
+  ['ei-d','ei-f','ei-i','ei-k','ei-m','ei-p'].forEach(id=>s(id).textContent=fmt(vf));
+
+  let sO=vf,sN=vf;
+  let tJO=0,tJN=0,tPN=0,tEX=0,tAO=0,tPO=0,tAN=0;
+  let prazoAt=prazo,found=false;
+
+  for(let i=0;i<prazo;i++){
+    const parc=i+1;
+    // Original
+    const jO=sO*taxa, saO=sO+jO, aO=pmt-jO, sdO=Math.max(0,saO-pmt);
+    tJO+=jO; tAO+=aO; tPO+=pmt;
+
+    // Novo
+    const ex=extraAmort[i]||0;
+    const jN=sN*taxa, saN=sN+jN;
+    const nP=sN>0.01?Math.min(pmt+ex,saN):0;
+    const aN=Math.max(0,nP-jN), sdN=Math.max(0,saN-nP);
+
+    if(sN>0.01){ tJN+=jN; tPN+=nP; tEX+=ex; tAN+=aN; }
+    if(!found&&sdN<=0.005&&sN>0.01){ prazoAt=parc; found=true; }
+
+    // Células
+    const sc=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=fmt(v); };
+    sc(`r${i}c`,prazo-parc+1);
+    sc(`r${i}d`,sO); sc(`r${i}e`,jO); sc(`r${i}f`,saO);
+    sc(`r${i}g`,aO); sc(`r${i}h`,pmt); sc(`r${i}i`,sdO);
+    sc(`r${i}k`,sN); sc(`r${i}l`,jN); sc(`r${i}m`,saN);
+    sc(`r${i}n`,aN); sc(`r${i}o`,nP); sc(`r${i}p`,sdN);
+
+    const qEl=document.getElementById(`r${i}q`);
+    if(qEl){
+      if(sN<=0.01){ qEl.textContent='✓ QUITADO'; qEl.style.color='#1a7a3c'; qEl.style.fontWeight='700'; }
+      else if(ex>0){ qEl.textContent='+ amort.'; qEl.style.color='#1a56db'; qEl.style.fontWeight='600'; }
+      else { qEl.textContent='—'; qEl.style.color='#ccc'; qEl.style.fontWeight='400'; }
+    }
+
+    sO=sdO; sN=sdN;
+  }
+
+  // Totais
+  const ts=id=>document.getElementById(id);
+  ts('tot-e').textContent=fmt(tJO); ts('tot-g').textContent=fmt(tAO);
+  ts('tot-h').textContent=fmt(tPO); ts('tot-j').textContent=fmt(tEX);
+  ts('tot-l').textContent=fmt(tJN); ts('tot-n').textContent=fmt(tAN);
+  ts('tot-o').textContent=fmt(tPN);
+
+  // Stats no topo
+  const econ=tJO-tJN, totOrig=pmt*prazo;
+  const mR=prazo-prazoAt;
+  const aA=Math.floor(prazoAt/12), mA=prazoAt%12;
+  const aR=Math.floor(mR/12), mRm=mR%12;
+
+  s('st-econ').textContent  ='R$ '+fmt(econ);
+  s('st-amort').textContent ='R$ '+fmt(tEX);
+  s('st-juros-novo').textContent=fmt(tJN);
+  s('st-total-novo').textContent=fmt(tPN);
+  s('st-prazo').textContent =`${prazoAt}m / ${aA}a ${mA}m`;
+  s('st-red').textContent   =`${mR}m / ${aR}a ${mRm}m`;
+  s('st-pct-econ').textContent =fmtPct(totOrig>0?(totOrig-tPN)/totOrig:0);
+  s('st-pct-juros').textContent=fmtPct(tJO>0?econ/tJO:0);
+  s('st-pct-parc').textContent =fmtPct(prazo>0?mR/prazo:0);
+}
+
+function init(){ renderTable(); recalc(); }
+</script>
+</body>
+</html>
