@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prospector MCMV — Alêsi Consultoria</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --terra:#B84D1A;--teal:#4E8A82;--teal-dk:#2E6058;--teal-lt:#EBF4F2;
+  --yellow:#F2B732;--green:#27AE60;--red:#E74C3C;--grey:#6B7280;
+  --cream:#FDF6EE;--brown:#2C1A0E;--white:#fff;--border:#E5E7EB;
+  --card:#fff;--bg:#F3F4F6;
+}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--brown);min-height:100vh}
+
+/* ── HEADER ── */
+.app-header{background:var(--teal-dk);color:var(--white);padding:14px 20px;display:flex;align-items:center;gap:12px}
+.app-header h1{font-family:'Fredoka',sans-serif;font-size:1.25rem;font-weight:700}
+.app-header p{font-size:0.75rem;color:rgba(255,255,255,0.6);margin-top:1px}
+
+/* ── TABS ── */
+.tabs{display:flex;background:var(--white);border-bottom:2px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tab{flex:1;min-width:80px;padding:12px 8px;text-align:center;font-size:0.78rem;font-weight:800;color:var(--grey);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all 0.15s}
+.tab.active{color:var(--teal-dk);border-bottom-color:var(--teal-dk)}
+.tab-icon{font-size:1.1rem;display:block;margin-bottom:2px}
+
+/* ── PANELS ── */
+.panel{display:none;padding:16px}
+.panel.active{display:block}
+
+/* ── CARDS ── */
+.card{background:var(--white);border-radius:12px;padding:16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,0.07)}
+.card-title{font-family:'Fredoka',sans-serif;font-weight:700;font-size:1rem;color:var(--teal-dk);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+
+/* ── SETUP BOX ── */
+.setup-box{background:var(--teal-lt);border:1.5px solid var(--teal);border-radius:10px;padding:14px;margin-bottom:14px}
+.setup-box label{font-size:0.75rem;font-weight:900;color:var(--teal-dk);letter-spacing:0.5px;text-transform:uppercase;display:block;margin-bottom:6px}
+.setup-box input{width:100%;padding:10px 12px;border:1.5px solid var(--teal);border-radius:8px;font-family:'Nunito',sans-serif;font-size:0.9rem;outline:none;color:var(--brown)}
+.setup-box input:focus{border-color:var(--teal-dk)}
+
+/* ── FIELDS ── */
+.field{margin-bottom:12px}
+.field label{font-size:0.75rem;font-weight:800;color:var(--grey);letter-spacing:0.4px;text-transform:uppercase;display:block;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:0.9rem;outline:none;color:var(--brown);background:var(--white)}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal)}
+.field textarea{resize:vertical;min-height:70px}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:11px 18px;border-radius:50px;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.88rem;border:none;cursor:pointer;transition:opacity 0.15s}
+.btn:active{opacity:0.8}
+.btn-teal{background:var(--teal-dk);color:var(--white)}
+.btn-yellow{background:var(--yellow);color:var(--brown)}
+.btn-terra{background:var(--terra);color:var(--white)}
+.btn-block{width:100%;justify-content:center}
+.btn-sm{padding:7px 14px;font-size:0.78rem}
+
+/* ── INFO BOX ── */
+.info{background:#FFF8E6;border-left:4px solid var(--yellow);border-radius:0 8px 8px 0;padding:12px 14px;margin-bottom:14px;font-size:0.82rem;line-height:1.6;color:#6B4E00}
+.info strong{color:var(--terra)}
+.step-list{list-style:none;counter-reset:steps}
+.step-list li{counter-increment:steps;padding:8px 0 8px 36px;position:relative;font-size:0.84rem;border-bottom:1px solid var(--border);line-height:1.5}
+.step-list li:last-child{border:none}
+.step-list li::before{content:counter(steps);position:absolute;left:0;top:8px;width:24px;height:24px;background:var(--teal-dk);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:900}
+
+/* ── LINK BUTTONS ── */
+.link-btn{display:flex;align-items:center;gap:10px;background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;text-decoration:none;color:var(--brown);transition:border-color 0.15s}
+.link-btn:hover{border-color:var(--teal)}
+.link-btn-icon{font-size:1.4rem;flex-shrink:0}
+.link-btn-text{font-size:0.82rem;font-weight:700;line-height:1.3}
+.link-btn-sub{font-size:0.72rem;color:var(--grey);font-weight:400}
+
+/* ── RESULTS ── */
+.result-item{background:var(--white);border-radius:10px;border:1.5px solid var(--border);padding:13px;margin-bottom:10px;transition:border-color 0.15s}
+.result-item.avaliado-sim{border-color:var(--green)}
+.result-item.avaliado-nao{border-color:var(--red);opacity:0.55}
+.result-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.result-source{font-size:0.68rem;font-weight:900;text-transform:uppercase;letter-spacing:0.5px;border-radius:4px;padding:2px 8px;flex-shrink:0;margin-top:2px}
+.src-youtube{background:#FF0000;color:#fff}
+.src-olx{background:#6E00FF;color:#fff}
+.src-facebook{background:#1877F2;color:#fff}
+.src-manual{background:var(--grey);color:#fff}
+.src-instagram{background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff}
+.src-tiktok{background:#010101;color:#fff}
+
+.result-user{font-weight:800;font-size:0.88rem;color:var(--brown)}
+.result-msg{font-size:0.82rem;color:var(--grey);margin-bottom:10px;line-height:1.5;background:var(--bg);border-radius:6px;padding:8px 10px;font-style:italic}
+.result-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.result-date{font-size:0.7rem;color:var(--grey);margin-left:auto}
+.badge-status{font-size:0.72rem;font-weight:800;padding:3px 10px;border-radius:20px}
+.status-pendente{background:#FFF3CD;color:#856404}
+.status-sim{background:#D1FAE5;color:#065F46}
+.status-nao{background:#FEE2E2;color:#991B1B}
+
+/* ── EMPTY ── */
+.empty{text-align:center;padding:40px 20px;color:var(--grey)}
+.empty-icon{font-size:2.5rem;margin-bottom:10px}
+.empty-text{font-size:0.88rem;line-height:1.6}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.stat-box{background:var(--white);border-radius:10px;padding:12px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.07)}
+.stat-val{font-family:'Fredoka',sans-serif;font-weight:700;font-size:1.6rem;line-height:1}
+.stat-label{font-size:0.68rem;font-weight:700;color:var(--grey);margin-top:2px;text-transform:uppercase;letter-spacing:0.4px}
+.stat-total .stat-val{color:var(--teal-dk)}
+.stat-sim   .stat-val{color:var(--green)}
+.stat-nao   .stat-val{color:var(--red)}
+
+/* ── TAG INPUT ── */
+.tag-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.tag{background:var(--teal-lt);color:var(--teal-dk);border-radius:20px;padding:4px 12px;font-size:0.78rem;font-weight:700;display:flex;align-items:center;gap:5px}
+.tag button{background:none;border:none;cursor:pointer;color:var(--teal-dk);font-size:0.9rem;line-height:1;padding:0}
+
+/* ── SPINNER ── */
+.spinner{display:none;text-align:center;padding:20px;color:var(--grey);font-size:0.85rem}
+.spinner.active{display:block}
+
+/* ── MANUAL ENTRY ── */
+.manual-toggle{font-size:0.8rem;color:var(--teal);font-weight:700;cursor:pointer;text-align:center;margin-top:10px;display:block}
+.manual-form{display:none;background:var(--teal-lt);border-radius:10px;padding:14px;margin-top:10px}
+.manual-form.open{display:block}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div>
+    <h1>🔍 Prospector MCMV</h1>
+    <p>Alêsi Consultoria Imóveis — Pesquisa de Leads Orgânicos</p>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="showTab('youtube')"><span class="tab-icon">▶️</span>YouTube</div>
+  <div class="tab" onclick="showTab('olx')"><span class="tab-icon">🏷️</span>OLX</div>
+  <div class="tab" onclick="showTab('facebook')"><span class="tab-icon">🔵</span>Facebook</div>
+  <div class="tab" onclick="showTab('lista')"><span class="tab-icon">📋</span>Minha Lista</div>
+  <div class="tab" onclick="showTab('instagram')"><span class="tab-icon">📸</span>Instagram</div>
+  <div class="tab" onclick="showTab('tiktok')"><span class="tab-icon">🎵</span>TikTok</div>
+  <div class="tab" onclick="showTab('config')"><span class="tab-icon">⚙️</span>Config</div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAINEL: YOUTUBE
+════════════════════════════════════════════ -->
+<div class="panel active" id="panel-youtube">
+
+  <div class="info">
+    <strong>Como funciona:</strong> A app busca comentários recentes em vídeos sobre MCMV no YouTube usando a API oficial do Google (gratuita). Você vê o comentário, o nome do canal e o link — e decide se vale contato.<br><br>
+    <strong>⚠️ Precisa de:</strong> uma chave de API do YouTube (veja aba Config).
+  </div>
+
+  <div class="card">
+    <div class="card-title">🎯 Palavras-chave de busca</div>
+    <div id="yt-tags" class="tag-wrap"></div>
+    <div style="display:flex;gap:8px">
+      <input type="text" id="yt-tag-input" placeholder="ex: MCMV Campo Limpo" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:0.88rem;outline:none">
+      <button class="btn btn-teal btn-sm" onclick="addYtTag()">+ Add</button>
+    </div>
+    <div class="field" style="margin-top:12px">
+      <label>Filtrar comentários que contenham</label>
+      <input type="text" id="yt-filter" placeholder="ex: procuro, quero comprar, financiamento">
+    </div>
+    <div class="field">
+      <label>Máx. resultados por busca</label>
+      <select id="yt-max">
+        <option value="20">20 comentários</option>
+        <option value="50" selected>50 comentários</option>
+        <option value="100">100 comentários</option>
+      </select>
+    </div>
+    <button class="btn btn-teal btn-block" onclick="buscarYoutube()">▶️ Buscar no YouTube</button>
+  </div>
+
+  <div class="spinner" id="yt-spinner">⏳ Buscando comentários...</div>
+  <div id="yt-results"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAINEL: OLX
+════════════════════════════════════════════ -->
+<div class="panel" id="panel-olx">
+
+  <div class="info">
+    <strong>Como funciona:</strong> A OLX tem uma seção "Quero Comprar" onde pessoas anunciam que estão procurando imóvel. A app gera os links de busca certos — você clica, lê os anúncios, e cola os interessantes na lista.<br><br>
+    <strong>✅ Não precisa de API</strong> — acesso 100% público.
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔗 Links de busca prontos — OLX</div>
+    <a class="link-btn" href="https://www.olx.com.br/imoveis/venda/apartamentos?q=minha+casa+minha+vida" target="_blank">
+      <span class="link-btn-icon">🔵</span>
+      <div><div class="link-btn-text">MCMV — Apartamentos SP (Geral)</div><div class="link-btn-sub">Filtre por "Quero Comprar" dentro do site</div></div>
+      <span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.olx.com.br/imoveis?q=procuro+apartamento+mcmv&sc=2020" target="_blank">
+      <span class="link-btn-icon">🔵</span>
+      <div><div class="link-btn-text">Busca: "procuro apartamento mcmv"</div><div class="link-btn-sub">São Paulo — anúncios de procura</div></div>
+      <span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.olx.com.br/imoveis?q=procuro+apartamento+campo+limpo" target="_blank">
+      <span class="link-btn-icon">🔵</span>
+      <div><div class="link-btn-text">Procuro apartamento — Campo Limpo</div><div class="link-btn-sub">Leads do bairro do Ares do Horto</div></div>
+      <span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.olx.com.br/imoveis?q=procuro+apartamento+pirituba" target="_blank">
+      <span class="link-btn-icon">🔵</span>
+      <div><div class="link-btn-text">Procuro apartamento — Pirituba</div><div class="link-btn-sub">Leads da zona norte</div></div>
+      <span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.olx.com.br/imoveis?q=procuro+apartamento+butanta" target="_blank">
+      <span class="link-btn-icon">🔵</span>
+      <div><div class="link-btn-text">Procuro apartamento — Butantã</div><div class="link-btn-sub">Mais Butantã e adjacentes</div></div>
+      <span>↗</span>
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📌 Gerar busca personalizada</div>
+    <div class="field">
+      <label>Bairro ou região</label>
+      <input type="text" id="olx-bairro" placeholder="ex: Vila Leopoldina, Itaquera...">
+    </div>
+    <div class="field">
+      <label>Palavra extra (opcional)</label>
+      <input type="text" id="olx-extra" placeholder="ex: 2 quartos, FGTS, financiamento">
+    </div>
+    <button class="btn btn-yellow btn-block" onclick="gerarLinkOLX()">🔗 Gerar link e abrir</button>
+  </div>
+
+  <span class="manual-toggle" onclick="toggleManual('olx')">+ Encontrei algo interessante — adicionar à lista</span>
+  <div class="manual-form" id="manual-olx">
+    <div class="field"><label>Nome / apelido do anunciante</label><input type="text" id="olx-nome" placeholder="Nome ou @usuário"></div>
+    <div class="field"><label>Trecho da mensagem</label><textarea id="olx-msg" placeholder="Cole aqui o texto do anúncio..."></textarea></div>
+    <div class="field"><label>Link do anúncio</label><input type="text" id="olx-link" placeholder="https://www.olx.com.br/..."></div>
+    <button class="btn btn-teal btn-block" onclick="addManual('OLX','olx-nome','olx-msg','olx-link')">✅ Adicionar à lista</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAINEL: FACEBOOK
+════════════════════════════════════════════ -->
+<div class="panel" id="panel-facebook">
+
+  <div class="info">
+    <strong>Como funciona:</strong> O Facebook não libera API para leitura de posts de terceiros. Mas você pode usar o Google para encontrar posts públicos de grupos e páginas. A app gera as buscas certas — você abre, lê logado no Facebook, e cola o que encontrar.<br><br>
+    <strong>✅ 100% legítimo</strong> — você lê como qualquer usuário normal, sem bot.
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔎 Buscas no Google → Facebook público</div>
+    <a class="link-btn" href="https://www.google.com/search?q=site:facebook.com+%22minha+casa+minha+vida%22+%22procuro+apartamento%22+S%C3%A3o+Paulo" target="_blank">
+      <span class="link-btn-icon">🟦</span>
+      <div><div class="link-btn-text">"procuro apartamento" MCMV — SP</div><div class="link-btn-sub">Posts públicos indexados pelo Google</div></div>
+      <span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.google.com/search?q=site:facebook.com+%22quero+comprar%22+%22minha+casa+minha+vida%22+%22S%C3%A3o+Paulo%22" target="_blank">
+      <span class="link-btn-icon">🟦</span>
+      <div><div class="link-btn-text">"quero comprar" MCMV — SP</div><div class="link-btn-sub">Intenção clara de compra</div></div>
+      <span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.google.com/search?q=site:facebook.com+%22FGTS%22+%22apartamento%22+%22Campo+Limpo%22+OR+%22Pirituba%22+OR+%22Butant%C3%A3%22" target="_blank">
+      <span class="link-btn-icon">🟦</span>
+      <div><div class="link-btn-text">FGTS + apartamento nos seus bairros</div><div class="link-btn-sub">Campo Limpo, Pirituba, Butantã</div></div>
+      <span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.facebook.com/search/posts?q=procuro%20apartamento%20mcmv%20s%C3%A3o%20paulo" target="_blank">
+      <span class="link-btn-icon">🔵</span>
+      <div><div class="link-btn-text">Busca direta no Facebook (requer login)</div><div class="link-btn-sub">Posts recentes — "procuro apartamento mcmv sp"</div></div>
+      <span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.facebook.com/search/posts?q=minha%20casa%20minha%20vida%20s%C3%A3o%20paulo%202026" target="_blank">
+      <span class="link-btn-icon">🔵</span>
+      <div><div class="link-btn-text">MCMV São Paulo 2026 — posts recentes</div><div class="link-btn-sub">Busca direta no Facebook</div></div>
+      <span>↗</span>
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⚙️ Gerar busca personalizada</div>
+    <div class="field">
+      <label>Bairro ou palavra extra</label>
+      <input type="text" id="fb-bairro" placeholder="ex: Vila Leopoldina, Rio Pequeno...">
+    </div>
+    <div class="field">
+      <label>Tipo de busca</label>
+      <select id="fb-tipo">
+        <option value="google">Via Google (posts públicos)</option>
+        <option value="fb">Direto no Facebook (requer login)</option>
+      </select>
+    </div>
+    <button class="btn btn-yellow btn-block" onclick="gerarBuscaFB()">🔗 Gerar busca e abrir</button>
+  </div>
+
+  <span class="manual-toggle" onclick="toggleManual('fb')">+ Encontrei algo interessante — adicionar à lista</span>
+  <div class="manual-form" id="manual-fb">
+    <div class="field"><label>Nome do usuário / perfil</label><input type="text" id="fb-nome" placeholder="Nome ou @perfil"></div>
+    <div class="field"><label>Trecho da mensagem</label><textarea id="fb-msg" placeholder="Cole aqui o texto do post..."></textarea></div>
+    <div class="field"><label>Link do post</label><input type="text" id="fb-link" placeholder="https://facebook.com/..."></div>
+    <button class="btn btn-teal btn-block" onclick="addManual('Facebook','fb-nome','fb-msg','fb-link')">✅ Adicionar à lista</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAINEL: MINHA LISTA
+════════════════════════════════════════════ -->
+<div class="panel" id="panel-lista">
+
+  <div class="stats-row">
+    <div class="stat-box stat-total"><div class="stat-val" id="stat-total">0</div><div class="stat-label">Total</div></div>
+    <div class="stat-box stat-sim"><div class="stat-val" id="stat-sim">0</div><div class="stat-label">Vale contato</div></div>
+    <div class="stat-box stat-nao"><div class="stat-val" id="stat-nao">0</div><div class="stat-label">Descartados</div></div>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <button class="btn btn-sm" style="background:var(--bg);color:var(--grey);border:1.5px solid var(--border)" onclick="filtrarLista('todos')">Todos</button>
+    <button class="btn btn-sm" style="background:#FFF3CD;color:#856404;border:1.5px solid #F5C518" onclick="filtrarLista('pendente')">⏳ Pendentes</button>
+    <button class="btn btn-sm" style="background:#D1FAE5;color:#065F46;border:1.5px solid #6EE7B7" onclick="filtrarLista('sim')">✅ Vale contato</button>
+    <button class="btn btn-sm" style="background:#FEE2E2;color:#991B1B;border:1.5px solid #FCA5A5" onclick="filtrarLista('nao')">❌ Descartados</button>
+    <button class="btn btn-sm btn-terra" onclick="exportarCSV()" style="margin-left:auto">⬇ Exportar CSV</button>
+  </div>
+
+  <div id="lista-container">
+    <div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Nenhum lead ainda.<br>Pesquise nas outras abas e adicione aqui.</div></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════
+     PAINEL: INSTAGRAM
+════════════════════════════════════════════ -->
+<div class="panel" id="panel-instagram">
+
+  <div class="info">
+    <strong>Como funciona:</strong> A API do Instagram não permite ler posts de terceiros. Mas você pode buscar por hashtags e via Google. Você lê manualmente — logado no Instagram — e cola os leads interessantes aqui.<br><br>
+    <strong>✅ 100% legítimo</strong> — você age como qualquer usuário normal.
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔖 Hashtags com maior potencial MCMV</div>
+    <a class="link-btn" href="https://www.instagram.com/explore/tags/mcmvsp/" target="_blank">
+      <span class="link-btn-icon">📸</span>
+      <div><div class="link-btn-text">#mcmvsp</div><div class="link-btn-sub">Filtre por Recentes — maior intenção</div></div><span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.instagram.com/explore/tags/apartamentomcmv/" target="_blank">
+      <span class="link-btn-icon">📸</span>
+      <div><div class="link-btn-text">#apartamentomcmv</div><div class="link-btn-sub">Posts sobre apartamentos MCMV</div></div><span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.instagram.com/explore/tags/sairdoaluguel/" target="_blank">
+      <span class="link-btn-icon">📸</span>
+      <div><div class="link-btn-text">#sairdoaluguel</div><div class="link-btn-sub">Alta intenção — pessoas querendo comprar</div></div><span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.instagram.com/explore/tags/primeiroapartamento/" target="_blank">
+      <span class="link-btn-icon">📸</span>
+      <div><div class="link-btn-text">#primeiroapartamento</div><div class="link-btn-sub">Público típico MCMV</div></div><span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.instagram.com/explore/tags/mcmv2026/" target="_blank">
+      <span class="link-btn-icon">📸</span>
+      <div><div class="link-btn-text">#mcmv2026</div><div class="link-btn-sub">Posts recentes sobre o programa</div></div><span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.instagram.com/explore/tags/casapropria/" target="_blank">
+      <span class="link-btn-icon">📸</span>
+      <div><div class="link-btn-text">#casapropria</div><div class="link-btn-sub">Volume alto — filtre comentários com bairro</div></div><span>↗</span>
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔎 Buscar posts públicos via Google</div>
+    <a class="link-btn" href="https://www.google.com/search?q=site:instagram.com+%22minha+casa+minha+vida%22+%22procuro+apartamento%22" target="_blank">
+      <span class="link-btn-icon">🔍</span>
+      <div><div class="link-btn-text">"procuro apartamento" MCMV</div><div class="link-btn-sub">Posts públicos indexados pelo Google</div></div><span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.google.com/search?q=site:instagram.com+%22quero+comprar%22+%22mcmv%22+%22s%C3%A3o+paulo%22" target="_blank">
+      <span class="link-btn-icon">🔍</span>
+      <div><div class="link-btn-text">"quero comprar" MCMV São Paulo</div><div class="link-btn-sub">Intenção clara de compra</div></div><span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.google.com/search?q=site:instagram.com+%22FGTS%22+%22apartamento%22+%22campo+limpo%22+OR+%22pirituba%22+OR+%22butant%C3%A3%22" target="_blank">
+      <span class="link-btn-icon">🔍</span>
+      <div><div class="link-btn-text">FGTS + apartamento nos seus bairros</div><div class="link-btn-sub">Campo Limpo, Pirituba, Butantã</div></div><span>↗</span>
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="card-title">👁️ Comentários em perfis de construtoras</div>
+    <div class="info" style="margin-bottom:10px">Pessoas comentam nos posts da Plano&Plano pedindo informação — você pode responder publicamente e iniciar contato organicamente.</div>
+    <a class="link-btn" href="https://www.instagram.com/planoplano/" target="_blank">
+      <span class="link-btn-icon">🏢</span>
+      <div><div class="link-btn-text">@planoplano</div><div class="link-btn-sub">Leia comentários dos posts mais recentes</div></div><span>↗</span>
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⚙️ Gerar busca personalizada</div>
+    <div class="field">
+      <label>Hashtag ou palavra-chave</label>
+      <input type="text" id="ig-kw" placeholder="ex: mcmvcampolimpo, pirituba">
+    </div>
+    <div class="field">
+      <label>Tipo de busca</label>
+      <select id="ig-tipo">
+        <option value="hashtag">Hashtag no Instagram</option>
+        <option value="google">Via Google (posts públicos)</option>
+        <option value="busca">Busca direta no Instagram</option>
+      </select>
+    </div>
+    <button class="btn btn-yellow btn-block" onclick="gerarBuscaIG()">🔗 Gerar busca e abrir</button>
+  </div>
+
+  <span class="manual-toggle" onclick="toggleManual('ig')">+ Encontrei algo interessante — adicionar à lista</span>
+  <div class="manual-form" id="manual-ig">
+    <div class="field"><label>Usuário / @perfil</label><input type="text" id="ig-nome" placeholder="@usuario"></div>
+    <div class="field"><label>Trecho do post ou comentário</label><textarea id="ig-msg" placeholder="Cole aqui o texto..."></textarea></div>
+    <div class="field"><label>Link do post</label><input type="text" id="ig-link" placeholder="https://www.instagram.com/p/..."></div>
+    <button class="btn btn-teal btn-block" onclick="addManual('Instagram','ig-nome','ig-msg','ig-link')">✅ Adicionar à lista</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAINEL: TIKTOK
+════════════════════════════════════════════ -->
+<div class="panel" id="panel-tiktok">
+
+  <div class="info">
+    <strong>Como funciona:</strong> O TikTok tem busca rica por palavras-chave e hashtags — retorna vídeos E comentários recentes. Você busca manualmente logado no app ou no browser, lê os comentários dos vídeos MCMV, e cola os leads aqui.<br><br>
+    <strong>💡 Dica extra:</strong> Nos seus próprios vídeos, leia os comentários regularmente — são leads que já vieram até você.
+  </div>
+
+  <div class="card">
+    <div class="card-title">🎯 Hashtags e buscas prontas</div>
+    <a class="link-btn" href="https://www.tiktok.com/tag/mcmv" target="_blank">
+      <span class="link-btn-icon">🎵</span>
+      <div><div class="link-btn-text">#mcmv</div><div class="link-btn-sub">Maior volume — filtre pelos mais recentes</div></div><span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.tiktok.com/tag/mcmv2026" target="_blank">
+      <span class="link-btn-icon">🎵</span>
+      <div><div class="link-btn-text">#mcmv2026</div><div class="link-btn-sub">Posts recentes do programa</div></div><span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.tiktok.com/tag/sairdoaluguel" target="_blank">
+      <span class="link-btn-icon">🎵</span>
+      <div><div class="link-btn-text">#sairdoaluguel</div><div class="link-btn-sub">Alta intenção de compra</div></div><span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.tiktok.com/tag/primeiroapartamento" target="_blank">
+      <span class="link-btn-icon">🎵</span>
+      <div><div class="link-btn-text">#primeiroapartamento</div><div class="link-btn-sub">Público típico MCMV</div></div><span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.tiktok.com/tag/apartamentomcmv" target="_blank">
+      <span class="link-btn-icon">🎵</span>
+      <div><div class="link-btn-text">#apartamentomcmv</div><div class="link-btn-sub">Posts sobre apartamentos MCMV</div></div><span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.tiktok.com/search?q=minha+casa+minha+vida+sao+paulo" target="_blank">
+      <span class="link-btn-icon">🔍</span>
+      <div><div class="link-btn-text">Busca: "minha casa minha vida são paulo"</div><div class="link-btn-sub">Busca direta no TikTok — vídeos e comentários</div></div><span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.tiktok.com/search?q=procuro+apartamento+mcmv" target="_blank">
+      <span class="link-btn-icon">🔍</span>
+      <div><div class="link-btn-text">Busca: "procuro apartamento mcmv"</div><div class="link-btn-sub">Intenção clara de compra</div></div><span>↗</span>
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔎 Buscar posts públicos via Google</div>
+    <a class="link-btn" href="https://www.google.com/search?q=site:tiktok.com+%22minha+casa+minha+vida%22+%22procuro%22+%22s%C3%A3o+paulo%22" target="_blank">
+      <span class="link-btn-icon">🔍</span>
+      <div><div class="link-btn-text">"procuro" MCMV São Paulo — via Google</div><div class="link-btn-sub">Posts e comentários públicos indexados</div></div><span>↗</span>
+    </a>
+    <a class="link-btn" href="https://www.google.com/search?q=site:tiktok.com+%22apartamento%22+%22campo+limpo%22+OR+%22pirituba%22+OR+%22butant%C3%A3%22" target="_blank">
+      <span class="link-btn-icon">🔍</span>
+      <div><div class="link-btn-text">Apartamento nos seus bairros — via Google</div><div class="link-btn-sub">Campo Limpo, Pirituba, Butantã</div></div><span>↗</span>
+    </a>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⚙️ Gerar busca personalizada</div>
+    <div class="field">
+      <label>Palavra-chave ou hashtag</label>
+      <input type="text" id="tt-kw" placeholder="ex: mcmvcampolimpo, apartamento pirituba">
+    </div>
+    <div class="field">
+      <label>Tipo de busca</label>
+      <select id="tt-tipo">
+        <option value="busca">Busca direta no TikTok</option>
+        <option value="hashtag">Hashtag no TikTok</option>
+        <option value="google">Via Google (posts públicos)</option>
+      </select>
+    </div>
+    <button class="btn btn-yellow btn-block" onclick="gerarBuscaTT()">🔗 Gerar busca e abrir</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💡 Seus próprios vídeos</div>
+    <div class="info" style="margin-bottom:10px">Os comentários no seu próprio conteúdo são os leads mais quentes — a pessoa já chegou até você. Leia regularmente e responda a todos, especialmente perguntas sobre bairros e valores.</div>
+    <a class="link-btn" href="https://www.tiktok.com/notification" target="_blank">
+      <span class="link-btn-icon">🔔</span>
+      <div><div class="link-btn-text">Minhas notificações no TikTok</div><div class="link-btn-sub">Comentários recentes nos seus vídeos</div></div><span>↗</span>
+    </a>
+  </div>
+
+  <span class="manual-toggle" onclick="toggleManual('tt')">+ Encontrei algo interessante — adicionar à lista</span>
+  <div class="manual-form" id="manual-tt">
+    <div class="field"><label>Usuário / @perfil</label><input type="text" id="tt-nome" placeholder="@usuario"></div>
+    <div class="field"><label>Trecho do comentário ou post</label><textarea id="tt-msg" placeholder="Cole aqui o texto..."></textarea></div>
+    <div class="field"><label>Link do vídeo ou perfil</label><input type="text" id="tt-link" placeholder="https://www.tiktok.com/@..."></div>
+    <button class="btn btn-teal btn-block" onclick="addManual('TikTok','tt-nome','tt-msg','tt-link')">✅ Adicionar à lista</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAINEL: CONFIG
+════════════════════════════════════════════ -->
+<div class="panel" id="panel-config">
+
+  <div class="card">
+    <div class="card-title">🔑 Chave API do YouTube</div>
+    <div class="info" style="margin-bottom:12px">
+      <strong>Como obter (gratuito):</strong>
+      <ol class="step-list" style="margin-top:8px">
+        <li>Acesse <strong>console.cloud.google.com</strong> com sua conta Google</li>
+        <li>Crie um novo projeto (ex: "Prospector MCMV")</li>
+        <li>No menu lateral vá em <strong>APIs e Serviços → Biblioteca</strong></li>
+        <li>Busque <strong>"YouTube Data API v3"</strong> e clique em Ativar</li>
+        <li>Vá em <strong>APIs e Serviços → Credenciais → Criar credencial → Chave de API</strong></li>
+        <li>Copie a chave gerada e cole abaixo</li>
+      </ol>
+      <br>Cota gratuita: <strong>10.000 unidades/dia</strong> — suficiente para centenas de buscas.
+    </div>
+    <div class="setup-box">
+      <label>Sua chave de API do YouTube</label>
+      <input type="text" id="yt-api-key" placeholder="AIzaSy..." oninput="salvarConfig()">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📱 Seu número WhatsApp</div>
+    <div class="setup-box">
+      <label>Número com DDI (para links de contato)</label>
+      <input type="text" id="wa-number" placeholder="5511999999999" oninput="salvarConfig()">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🎯 Seus bairros de atuação</div>
+    <div id="config-bairros" class="tag-wrap"></div>
+    <div style="display:flex;gap:8px">
+      <input type="text" id="bairro-input" placeholder="ex: Campo Limpo, Pirituba..." style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Nunito',sans-serif;font-size:0.88rem;outline:none">
+      <button class="btn btn-teal btn-sm" onclick="addBairro()">+ Add</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🗑️ Dados</div>
+    <button class="btn btn-sm" style="background:#FEE2E2;color:#991B1B;border:1.5px solid #FCA5A5" onclick="limparTudo()">Limpar todos os leads</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════
+// STATE
+// ══════════════════════════════════
+let leads = JSON.parse(localStorage.getItem('mcmv_leads') || '[]');
+let config = JSON.parse(localStorage.getItem('mcmv_config') || '{"apiKey":"","waNumber":"5511XXXXXXXXX","bairros":["Campo Limpo","Pirituba","Butantã","Rio Pequeno"]}');
+let ytTags = ['MCMV São Paulo', 'Minha Casa Minha Vida SP'];
+let filtroAtual = 'todos';
+
+// ══════════════════════════════════
+// INIT
+// ══════════════════════════════════
+window.onload = () => {
+  document.getElementById('yt-api-key').value = config.apiKey || '';
+  document.getElementById('wa-number').value  = config.waNumber || '';
+  renderBairros();
+  renderLista();
+  ytTags.forEach(t => renderYtTag(t));
+};
+
+// ══════════════════════════════════
+// TABS
+// ══════════════════════════════════
+function showTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'lista') renderLista();
+}
+
+// ══════════════════════════════════
+// CONFIG
+// ══════════════════════════════════
+function salvarConfig() {
+  config.apiKey   = document.getElementById('yt-api-key').value.trim();
+  config.waNumber = document.getElementById('wa-number').value.trim();
+  localStorage.setItem('mcmv_config', JSON.stringify(config));
+}
+function addBairro() {
+  const v = document.getElementById('bairro-input').value.trim();
+  if (!v) return;
+  config.bairros = config.bairros || [];
+  config.bairros.push(v);
+  localStorage.setItem('mcmv_config', JSON.stringify(config));
+  document.getElementById('bairro-input').value = '';
+  renderBairros();
+}
+function removeBairro(idx) {
+  config.bairros.splice(idx, 1);
+  localStorage.setItem('mcmv_config', JSON.stringify(config));
+  renderBairros();
+}
+function renderBairros() {
+  const wrap = document.getElementById('config-bairros');
+  wrap.innerHTML = (config.bairros || []).map((b,i) =>
+    `<div class="tag">${b}<button onclick="removeBairro(${i})">×</button></div>`
+  ).join('');
+}
+function limparTudo() {
+  if (!confirm('Apagar todos os leads da lista?')) return;
+  leads = [];
+  localStorage.setItem('mcmv_leads', JSON.stringify(leads));
+  renderLista();
+}
+
+// ══════════════════════════════════
+// YOUTUBE
+// ══════════════════════════════════
+function addYtTag() {
+  const v = document.getElementById('yt-tag-input').value.trim();
+  if (!v || ytTags.includes(v)) return;
+  ytTags.push(v);
+  renderYtTag(v);
+  document.getElementById('yt-tag-input').value = '';
+}
+function renderYtTag(tag) {
+  const wrap = document.getElementById('yt-tags');
+  const div = document.createElement('div');
+  div.className = 'tag';
+  div.innerHTML = `${tag}<button onclick="removeYtTag('${tag}',this)">×</button>`;
+  wrap.appendChild(div);
+}
+function removeYtTag(tag, btn) {
+  ytTags = ytTags.filter(t => t !== tag);
+  btn.parentElement.remove();
+}
+
+async function buscarYoutube() {
+  const apiKey = config.apiKey;
+  if (!apiKey) { alert('Configure sua chave de API do YouTube na aba Config primeiro.'); return; }
+  if (ytTags.length === 0) { alert('Adicione pelo menos uma palavra-chave.'); return; }
+
+  const spinner = document.getElementById('yt-spinner');
+  const resultsDiv = document.getElementById('yt-results');
+  spinner.classList.add('active');
+  resultsDiv.innerHTML = '';
+
+  const filtro = document.getElementById('yt-filter').value.toLowerCase();
+  const maxRes = parseInt(document.getElementById('yt-max').value);
+  const allComments = [];
+
+  for (const query of ytTags) {
+    try {
+      // 1. Busca vídeos
+      const vidRes = await fetch(
+        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=10&order=date&relevanceLanguage=pt&key=${apiKey}`
+      );
+      const vidData = await vidRes.json();
+      if (!vidData.items) continue;
+      const videoIds = vidData.items.map(v => v.id.videoId).join(',');
+
+      // 2. Busca comentários de cada vídeo
+      const commRes = await fetch(
+        `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoIds}&maxResults=${maxRes}&order=time&key=${apiKey}`
+      );
+      const commData = await commRes.json();
+      if (!commData.items) continue;
+
+      commData.items.forEach(item => {
+        const c = item.snippet.topLevelComment.snippet;
+        const texto = c.textDisplay.toLowerCase();
+        if (filtro && !texto.includes(filtro) &&
+            !['procuro','quero','financiamento','fgts','comprar','apartamento','mcmv']
+              .some(kw => texto.includes(kw))) return;
+        allComments.push({
+          id: Date.now() + Math.random(),
+          source: 'YouTube',
+          user: c.authorDisplayName,
+          msg: c.textDisplay.substring(0, 300),
+          link: `https://www.youtube.com/watch?v=${item.snippet.videoId}&lc=${item.id}`,
+          date: c.publishedAt.substring(0, 10),
+          status: 'pendente'
+        });
+      });
+    } catch(e) {
+      console.error(e);
+    }
+  }
+
+  spinner.classList.remove('active');
+
+  if (allComments.length === 0) {
+    resultsDiv.innerHTML = `<div class="empty"><div class="empty-icon">😕</div><div class="empty-text">Nenhum comentário encontrado.<br>Tente palavras-chave diferentes.</div></div>`;
+    return;
+  }
+
+  allComments.forEach(c => renderResultItem(c, resultsDiv, true));
+}
+
+// ══════════════════════════════════
+// OLX
+// ══════════════════════════════════
+function gerarLinkOLX() {
+  const bairro = document.getElementById('olx-bairro').value.trim();
+  const extra  = document.getElementById('olx-extra').value.trim();
+  if (!bairro) { alert('Digite um bairro.'); return; }
+  const q = encodeURIComponent(`procuro apartamento ${bairro} ${extra}`);
+  window.open(`https://www.olx.com.br/imoveis?q=${q}`, '_blank');
+}
+
+// ══════════════════════════════════
+// FACEBOOK
+// ══════════════════════════════════
+function gerarBuscaFB() {
+  const bairro = document.getElementById('fb-bairro').value.trim();
+  const tipo   = document.getElementById('fb-tipo').value;
+  if (!bairro) { alert('Digite um bairro.'); return; }
+  let url;
+  if (tipo === 'google') {
+    url = `https://www.google.com/search?q=site:facebook.com+"minha+casa+minha+vida"+"${encodeURIComponent(bairro)}"`;
+  } else {
+    url = `https://www.facebook.com/search/posts?q=${encodeURIComponent('minha casa minha vida ' + bairro)}`;
+  }
+  window.open(url, '_blank');
+}
+
+// ══════════════════════════════════
+// MANUAL ADD
+// ══════════════════════════════════
+function toggleManual(id) {
+  const el = document.getElementById('manual-' + id);
+  el.classList.toggle('open');
+}
+function addManual(source, nomeId, msgId, linkId) {
+  const nome = document.getElementById(nomeId).value.trim();
+  const msg  = document.getElementById(msgId).value.trim();
+  const link = document.getElementById(linkId).value.trim();
+  if (!nome || !msg) { alert('Preencha ao menos nome e mensagem.'); return; }
+  const lead = { id: Date.now(), source, user: nome, msg, link, date: new Date().toISOString().substring(0,10), status: 'pendente' };
+  leads.unshift(lead);
+  saveLead();
+  document.getElementById(nomeId).value = '';
+  document.getElementById(msgId).value  = '';
+  document.getElementById(linkId).value = '';
+  alert('✅ Adicionado à lista!');
+}
+
+// ══════════════════════════════════
+// RENDER RESULT ITEM (busca YT)
+// ══════════════════════════════════
+function renderResultItem(lead, container, showAdd) {
+  const div = document.createElement('div');
+  div.className = 'result-item';
+  div.innerHTML = `
+    <div class="result-header">
+      <span class="result-source src-${lead.source.toLowerCase()}">${lead.source}</span>
+      <div>
+        <div class="result-user">${escHtml(lead.user)}</div>
+        <div style="font-size:0.7rem;color:var(--grey)">${lead.date}</div>
+      </div>
+    </div>
+    <div class="result-msg">${escHtml(lead.msg)}</div>
+    <div class="result-actions">
+      ${lead.link ? `<a href="${lead.link}" target="_blank" class="btn btn-sm" style="background:var(--bg);color:var(--grey);border:1.5px solid var(--border)">🔗 Ver original</a>` : ''}
+      ${showAdd ? `<button class="btn btn-sm btn-teal" onclick="adicionarLead(${JSON.stringify(lead).replace(/"/g,'&quot;')},this)">+ Adicionar à lista</button>` : ''}
+    </div>
+  `;
+  container.appendChild(div);
+}
+
+function adicionarLead(lead, btn) {
+  leads.unshift(lead);
+  saveLead();
+  btn.textContent = '✅ Adicionado';
+  btn.disabled = true;
+}
+
+// ══════════════════════════════════
+// LISTA
+// ══════════════════════════════════
+function renderLista() {
+  const container = document.getElementById('lista-container');
+  let filtrados = leads;
+  if (filtroAtual !== 'todos') filtrados = leads.filter(l => l.status === filtroAtual);
+
+  document.getElementById('stat-total').textContent = leads.length;
+  document.getElementById('stat-sim').textContent   = leads.filter(l => l.status === 'sim').length;
+  document.getElementById('stat-nao').textContent   = leads.filter(l => l.status === 'nao').length;
+
+  if (filtrados.length === 0) {
+    container.innerHTML = `<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Nenhum lead ${filtroAtual === 'todos' ? '' : 'nessa categoria'} ainda.</div></div>`;
+    return;
+  }
+  container.innerHTML = '';
+  filtrados.forEach(lead => {
+    const div = document.createElement('div');
+    div.className = `result-item ${lead.status === 'sim' ? 'avaliado-sim' : lead.status === 'nao' ? 'avaliado-nao' : ''}`;
+    div.innerHTML = `
+      <div class="result-header">
+        <span class="result-source src-${lead.source.toLowerCase().replace(' ','-')}">${lead.source}</span>
+        <div style="flex:1">
+          <div class="result-user">${escHtml(lead.user)}</div>
+          <div style="font-size:0.7rem;color:var(--grey)">${lead.date}</div>
+        </div>
+        <span class="badge-status status-${lead.status}">${lead.status === 'pendente' ? '⏳ Pendente' : lead.status === 'sim' ? '✅ Vale' : '❌ Descartado'}</span>
+      </div>
+      <div class="result-msg">${escHtml(lead.msg)}</div>
+      <div class="result-actions">
+        ${lead.link ? `<a href="${lead.link}" target="_blank" class="btn btn-sm" style="background:var(--bg);color:var(--grey);border:1.5px solid var(--border)">🔗 Ver</a>` : ''}
+        <button class="btn btn-sm" style="background:#D1FAE5;color:#065F46;border:1.5px solid #6EE7B7" onclick="avaliar(${lead.id},'sim')">✅ Vale</button>
+        <button class="btn btn-sm" style="background:#FEE2E2;color:#991B1B;border:1.5px solid #FCA5A5" onclick="avaliar(${lead.id},'nao')">❌ Descartar</button>
+        ${lead.status === 'sim' ? `<a href="https://wa.me/${config.waNumber || '5511XXXXXXXXX'}?text=${encodeURIComponent('Olá '+lead.user+'! Vi sua mensagem sobre MCMV e posso ajudar com informações sobre apartamentos disponíveis na sua região.')}" target="_blank" class="btn btn-sm" style="background:#25D366;color:#fff">💬 WhatsApp</a>` : ''}
+        <button class="btn btn-sm" style="background:var(--bg);color:var(--red);border:1.5px solid var(--red)" onclick="removerLead(${lead.id})">🗑</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function avaliar(id, status) {
+  const lead = leads.find(l => l.id === id);
+  if (lead) { lead.status = status; saveLead(); renderLista(); }
+}
+function removerLead(id) {
+  leads = leads.filter(l => l.id !== id);
+  saveLead();
+  renderLista();
+}
+function filtrarLista(f) {
+  filtroAtual = f;
+  renderLista();
+}
+function saveLead() {
+  localStorage.setItem('mcmv_leads', JSON.stringify(leads));
+}
+
+// ══════════════════════════════════
+// EXPORT CSV
+// ══════════════════════════════════
+function exportarCSV() {
+  if (leads.length === 0) { alert('Nenhum lead para exportar.'); return; }
+  const header = 'Fonte,Usuário,Mensagem,Link,Data,Status';
+  const rows = leads.map(l =>
+    [l.source, l.user, l.msg.replace(/,/g,' ').replace(/\n/g,' '), l.link||'', l.date, l.status]
+      .map(v => `"${v}"`).join(',')
+  );
+  const csv = [header, ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `leads-mcmv-${new Date().toISOString().substring(0,10)}.csv`;
+  a.click();
+}
+
+// ══════════════════════════════════
+// UTILS
+// ══════════════════════════════════
+function escHtml(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ══════════════════════════════════
+// INSTAGRAM
+// ══════════════════════════════════
+function gerarBuscaIG() {
+  const kw   = document.getElementById('ig-kw').value.trim();
+  const tipo = document.getElementById('ig-tipo').value;
+  if (!kw) { alert('Digite uma hashtag ou palavra-chave.'); return; }
+  let url;
+  const kw_clean = kw.replace(/^#/, '').replace(/\s+/g, '');
+  if (tipo === 'hashtag') {
+    url = `https://www.instagram.com/explore/tags/${encodeURIComponent(kw_clean)}/`;
+  } else if (tipo === 'google') {
+    url = `https://www.google.com/search?q=site:instagram.com+"${encodeURIComponent(kw)}"+"minha+casa+minha+vida"`;
+  } else {
+    url = `https://www.instagram.com/explore/search/keyword/?q=${encodeURIComponent(kw)}`;
+  }
+  window.open(url, '_blank');
+}
+
+// ══════════════════════════════════
+// TIKTOK
+// ══════════════════════════════════
+function gerarBuscaTT() {
+  const kw   = document.getElementById('tt-kw').value.trim();
+  const tipo = document.getElementById('tt-tipo').value;
+  if (!kw) { alert('Digite uma palavra-chave.'); return; }
+  let url;
+  const kw_clean = kw.replace(/^#/, '').replace(/\s+/g, '');
+  if (tipo === 'hashtag') {
+    url = `https://www.tiktok.com/tag/${encodeURIComponent(kw_clean)}`;
+  } else if (tipo === 'google') {
+    url = `https://www.google.com/search?q=site:tiktok.com+"${encodeURIComponent(kw)}"`;
+  } else {
+    url = `https://www.tiktok.com/search?q=${encodeURIComponent(kw)}`;
+  }
+  window.open(url, '_blank');
+}
+
+</script>
+</body>
+</html>
