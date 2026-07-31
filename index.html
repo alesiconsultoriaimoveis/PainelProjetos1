@@ -105,9 +105,14 @@
     box-shadow: var(--shadow);
   }
   .project-box::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
     background: var(--accent); border-radius: 16px 16px 0 0; pointer-events: none;
   }
+  .regiao-label {
+    font-size: 9px; font-weight: 700; color: var(--accent);
+    text-transform: uppercase; letter-spacing: .5px;
+    margin-bottom: 2px; display: block;
+}
   .project-box.is-dragging-src { opacity: 0.3; transform: scale(0.96); }
   .project-box.is-drag-over {
     border-color: var(--accent1);
@@ -337,6 +342,10 @@
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxkyNAR_WXCq2lyjJrGHZmcXq0eW5VlXlbNxPZa0_JBN-TSWd0e_GKFqb_BeXyVXDQH/exec';
 
 const ACCENTS = ['#3b7cf4','#8b5cf6','#059669','#ef4444','#f59e0b','#06b6d4','#ec4899','#10b981'];
+const REGIAO_CORES = {
+  'NORTE':'#3b7cf4','SUL':'#f59e0b','LESTE':'#ef4444',
+  'OESTE':'#8b5cf6','CENTRO':'#059669','GRANDE SP':'#06b6d4','INTERIOR':'#ec4899'
+};
 const EMOJIS  = ['📄','📁','🌐','📊','📝','📌','🔗','💼','📅','🖼️','📧','💬','🎯','📦','🔧','⚙️','📱','💻','🗂️','🏗️','📐','📋','🧾','💡','🔐','📤','📥','🎨','🎬','🎵','📸','🧩','🗺️','📞','🔍','✅'];
 
 let projects       = [];
@@ -371,9 +380,10 @@ function carregarProjetos() {
         const extras = extraLinks[key] || [];
         // Marca atalhos da planilha com _fromSheet para não duplicar
         const sheetShortcuts = p.shortcuts.map(s => ({ ...s, _fromSheet: true }));
-        return {
+       return {
           nome:      p.nome,
-          color:     ACCENTS[idx % ACCENTS.length],
+          regiao:    p.regiao || '',
+          color:     REGIAO_CORES[String(p.regiao).toUpperCase()] || ACCENTS[idx % ACCENTS.length],
           shortcuts: [...sheetShortcuts, ...extras],
           key
         };
@@ -472,6 +482,7 @@ function renderAll() {
     box.innerHTML = `
       <div class="drag-handle" data-idx="${idx}">⠿</div>
       <div class="project-header">
+        <span class="regiao-label">${p.regiao}</span>
         <span class="project-name">${p.nome}</span>
         <div class="project-meta">
           <span class="project-count">${p.shortcuts.length} atalho${p.shortcuts.length!==1?'s':''}</span>
