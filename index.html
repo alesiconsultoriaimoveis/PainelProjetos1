@@ -374,6 +374,7 @@ function carregarProjetos() {
   // Callback global que o Apps Script vai chamar
   window._painelCallback = function(dados) {
     clearTimeout(timer);
+    console.log('dados recebidos:', JSON.stringify(dados));
     try {
       projects = dados.map((p, idx) => {
         const key    = slugify(p.nome);
