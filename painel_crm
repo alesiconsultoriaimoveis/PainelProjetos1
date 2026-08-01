@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de Leads</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F6F5;
+    --panel: #FFFFFF;
+    --ink: #1C2430;
+    --ink-soft: #5B6472;
+    --line: #E3E6E4;
+    --line-soft: #EEF0EE;
+    --accent: #2F5D50;
+    --accent-soft: #E6EFEC;
+    --amber: #C8862A;
+    --amber-soft: #FBF0DD;
+    --red: #B5493A;
+    --red-soft: #FBEAE7;
+    --blue: #3A6FB0;
+    --blue-soft: #EAF1FA;
+    --radius: 10px;
+    --shadow: 0 1px 2px rgba(28,36,48,0.04), 0 6px 20px rgba(28,36,48,0.05);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    height: 100vh;
+    overflow: hidden;
+  }
+  h1, h2, h3 { font-family: 'Manrope', 'Inter', sans-serif; margin: 0; }
+
+  .app { display: flex; height: 100vh; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar {
+    width: 340px;
+    min-width: 340px;
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 16px;
+    gap: 14px;
+  }
+  .sidebar h1 { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; }
+  .sidebar-sub { font-size: 12.5px; color: var(--ink-soft); margin-top: -8px; }
+
+  .filters { display: flex; flex-direction: column; gap: 8px; }
+  .filters input, .filters select {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-family: inherit;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  .filters input:focus, .filters select:focus,
+  input:focus, select:focus, textarea:focus, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13.5px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary:hover { background: #274F44; }
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13.5px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-secondary:hover { background: var(--line-soft); }
+
+  .lead-list {
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+  }
+  .lead-item {
+    padding: 10px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .lead-item:hover { background: var(--line-soft); }
+  .lead-item.active { background: var(--accent-soft); border-color: var(--accent); }
+  .lead-item .nome { font-size: 13.5px; font-weight: 600; }
+  .lead-item .meta { font-size: 12px; color: var(--ink-soft); display: flex; align-items: center; gap: 6px; }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .lead-list-empty { padding: 30px 10px; text-align: center; color: var(--ink-soft); font-size: 13px; }
+
+  /* ---------- Main panel ---------- */
+  .panel { flex: 1; overflow-y: auto; padding: 28px 36px; }
+  .empty-state {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+  .lead-detail { max-width: 780px; margin: 0 auto; }
+  .lead-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+  .lead-header h2 { font-size: 22px; font-weight: 800; }
+  .save-indicator { font-size: 12px; color: var(--accent); opacity: 0; transition: opacity 0.2s; }
+  .save-indicator.show { opacity: 1; }
+
+  .fields-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 16px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: var(--shadow);
+  }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field.wide { grid-column: 1 / -1; }
+  .field label { font-size: 11.5px; font-weight: 600; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.03em; }
+  .field input, .field select {
+    padding: 8px 9px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    font-size: 13.5px;
+    font-family: inherit;
+    background: #fff;
+    color: var(--ink);
+  }
+  .field.checkbox-field { flex-direction: row; align-items: center; gap: 8px; }
+  .field.checkbox-field label { text-transform: none; font-size: 13px; font-weight: 500; }
+
+  .tarefa-section { margin-top: 22px; }
+  .tarefa-section h3 { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+  .tarefa-atual {
+    background: var(--blue-soft);
+    color: #244B78;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+  .tarefa-atual.vazia { background: var(--line-soft); color: var(--ink-soft); }
+  .tarefa-form {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 140px 1fr auto;
+    gap: 8px;
+    align-items: start;
+    box-shadow: var(--shadow);
+  }
+  .tarefa-form input[type=date], .tarefa-form input[type=text] {
+    padding: 8px 9px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    font-family: inherit;
+    font-size: 13.5px;
+  }
+
+  .conversa-section { margin-top: 22px; }
+  .conversa-section h3 { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+  .conversa-list {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--panel);
+    box-shadow: var(--shadow);
+  }
+  .conversa-row { display: flex; border-bottom: 1px solid var(--line-soft); }
+  .conversa-row:last-child { border-bottom: none; }
+  .conversa-row .data {
+    width: 90px;
+    min-width: 90px;
+    background: var(--amber-soft);
+    color: #8A5A16;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 10px 10px;
+    border-right: 1px solid var(--line-soft);
+  }
+  .conversa-row .texto { padding: 10px 12px; font-size: 13.5px; line-height: 1.45; white-space: pre-wrap; }
+  .conversa-empty { padding: 16px 12px; color: var(--ink-soft); font-size: 13px; }
+
+  .conversa-new {
+    margin-top: 10px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 140px 1fr auto;
+    gap: 8px;
+    align-items: start;
+    box-shadow: var(--shadow);
+  }
+  .conversa-new input[type=date] {
+    padding: 8px 9px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    font-family: inherit;
+    font-size: 13px;
+  }
+  .conversa-new textarea {
+    padding: 8px 9px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    font-family: inherit;
+    font-size: 13.5px;
+    resize: vertical;
+    min-height: 38px;
+  }
+
+  /* ---------- Modal ---------- */
+  .modal {
+    position: fixed; inset: 0;
+    background: rgba(28,36,48,0.35);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 50;
+  }
+  .modal-content {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    width: 640px;
+    max-width: 92vw;
+    max-height: 86vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  }
+  .modal-content h2 { font-size: 18px; margin-bottom: 14px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+  [hidden] { display: none !important; }
+
+  @media (max-width: 760px) {
+    .app { flex-direction: column; }
+    .sidebar { width: 100%; min-width: 0; max-height: 45vh; border-right: none; border-bottom: 1px solid var(--line); }
+    .fields-grid { grid-template-columns: 1fr; }
+    .panel { padding: 18px; }
+    .conversa-new { grid-template-columns: 1fr; }
+    .tarefa-form { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div>
+      <h1>Leads</h1>
+      <div class="sidebar-sub" id="totalLeads">carregando...</div>
+    </div>
+    <div class="filters">
+      <input id="fNome" type="text" placeholder="Buscar por nome...">
+      <input id="fTelefone" type="text" placeholder="Buscar por telefone...">
+      <select id="fStatus"><option value="">Todos os status</option></select>
+    </div>
+    <button class="btn-primary" id="btnNovoLead">+ Novo lead</button>
+    <div class="lead-list" id="leadList"></div>
+  </aside>
+
+  <main class="panel">
+    <div class="empty-state" id="emptyState">Selecione um lead na lista ao lado</div>
+    <div class="lead-detail" id="leadDetail" hidden>
+      <div class="lead-header">
+        <h2 id="leadNome">—</h2>
+        <span class="save-indicator" id="saveIndicator">salvo</span>
+      </div>
+      <div class="fields-grid" id="fieldsGrid"></div>
+
+      <div class="tarefa-section">
+        <h3>Tarefa</h3>
+        <div class="tarefa-atual" id="tarefaAtual"></div>
+        <div class="tarefa-form">
+          <input type="date" id="tarefaData">
+          <input type="text" id="tarefaTexto" placeholder="Descreva a tarefa...">
+          <button class="btn-primary" id="btnSalvarTarefa">Salvar tarefa</button>
+        </div>
+      </div>
+
+      <div class="conversa-section">
+        <h3>Conversa</h3>
+        <div class="conversa-list" id="conversaList"></div>
+        <div class="conversa-new">
+          <input type="date" id="novaData">
+          <textarea id="novoTexto" placeholder="Descreva a interação..."></textarea>
+          <button class="btn-primary" id="btnAddInteracao">Adicionar</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal" id="modalNovoLead" hidden>
+  <div class="modal-content">
+    <h2>Novo lead</h2>
+    <div class="fields-grid" id="novoLeadFields"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="btnCancelarNovo">Cancelar</button>
+      <button class="btn-primary" id="btnSalvarNovo">Criar lead</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   CONFIGURAÇÃO — troque pela URL do seu Web App (termina em /exec)
+   ========================================================= */
+const WEB_APP_URL = 'COLE_AQUI_A_URL_DO_WEB_APP/exec';
+
+/* Campos e como exibi-los no painel direito e no formulário de novo lead.
+   Ajuste os nomes de chave (key) se o cabeçalho real da planilha for diferente. */
+const CAMPOS_SELECT = { 'REGIÃO': [], 'ORIGEM': [], 'CANAL': [] };
+const STATUS_KEYS_POSSIVEIS = ['FUNIL (STATUS)', 'FUNIL(STATUS)', 'STATUS', 'FUNIL'];
+const CAMPOS_CHECKBOX = ['FOTO 3', 'FOTO 3+3'];
+const CAMPOS_SOMENTE_LEITURA = ['DATA', 'DATA INT'];
+const CAMPOS_OCULTOS = ['ID_CLIENTE', 'NOME', 'WPP', 'CONVERSA', 'INTERACOES', 'DATA TAREFA', 'NOTIFICADO', 'TAREFA'];
+const CAMPOS_LARGOS = ['EMPREENDIMENTO', 'BAIRRO'];
+
+const ORDEM_CAMPOS_NOVO_LEAD = [
+  'NOME', 'TELEFONE', 'EMAIL', 'REGIÃO', 'BAIRRO', 'ORIGEM', 'CANAL',
+  'CPF', 'RG', 'RENDA', '$ ENTRADA', 'ID_PROJETO', 'EMPREENDIMENTO', 'BOOK', 'TABELA'
+];
+
+let statusKeyAtual = null;
+let leadSelecionadoId = null;
+let opcoesCarregadas = null;
+
+/* ---------- JSONP helper ---------- */
+let jsonpCounter = 0;
+function jsonp(params) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'cb_' + (jsonpCounter++) + '_' + Date.now();
+    const query = Object.keys(params).map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k])).join('&');
+    const script = document.createElement('script');
+    window[cbName] = function (data) {
+      resolve(data);
+      delete window[cbName];
+      script.remove();
+    };
+    script.onerror = function () {
+      reject(new Error('Falha ao chamar o Web App. Verifique a URL/implantação.'));
+      delete window[cbName];
+      script.remove();
+    };
+    script.src = WEB_APP_URL + '?' + query + '&callback=' + cbName;
+    document.body.appendChild(script);
+  });
+}
+
+/* ---------- Inicialização ---------- */
+document.addEventListener('DOMContentLoaded', init);
+
+async function init() {
+  document.getElementById('novaData').value = hojeISO();
+
+  try {
+    opcoesCarregadas = await jsonp({ action: 'listarOpcoes' });
+    statusKeyAtual = Object.keys(opcoesCarregadas).find(k => STATUS_KEYS_POSSIVEIS.includes(k)) || null;
+    montarSelectStatusFiltro();
+  } catch (err) {
+    console.error(err);
+  }
+
+  await carregarLista();
+
+  document.getElementById('fNome').addEventListener('input', debounce(carregarLista, 350));
+  document.getElementById('fTelefone').addEventListener('input', debounce(carregarLista, 350));
+  document.getElementById('fStatus').addEventListener('change', carregarLista);
+
+  document.getElementById('btnNovoLead').addEventListener('click', abrirModalNovoLead);
+  document.getElementById('btnCancelarNovo').addEventListener('click', () => {
+    document.getElementById('modalNovoLead').hidden = true;
+  });
+  document.getElementById('btnSalvarNovo').addEventListener('click', salvarNovoLead);
+  document.getElementById('btnAddInteracao').addEventListener('click', adicionarInteracaoUI);
+  document.getElementById('btnSalvarTarefa').addEventListener('click', salvarTarefaUI);
+}
+
+async function salvarTarefaUI() {
+  if (!leadSelecionadoId) return;
+  const dataIso = document.getElementById('tarefaData').value;
+  const texto = document.getElementById('tarefaTexto').value.trim();
+  if (!texto) { alert('Descreva a tarefa antes de salvar.'); return; }
+
+  const btn = document.getElementById('btnSalvarTarefa');
+  btn.disabled = true;
+  try {
+    const resultado = await jsonp({
+      action: 'salvarTarefa',
+      idCliente: leadSelecionadoId,
+      dataTarefa: dataIso ? isoParaBr(dataIso) : '',
+      tarefa: texto
+    });
+    if (resultado.erro) { alert(resultado.erro); return; }
+    const atualEl = document.getElementById('tarefaAtual');
+    atualEl.classList.remove('vazia');
+    atualEl.textContent = 'Tarefa atual: ' + texto + (dataIso ? ' — ' + isoParaBr(dataIso) : '');
+    document.getElementById('tarefaTexto').value = '';
+  } catch (err) {
+    console.error(err);
+    alert('Não foi possível salvar a tarefa.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+function hojeISO() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function isoParaBr(iso) {
+  const [y, m, d] = iso.split('-');
+  return d + '/' + m + '/' + y.slice(2);
+}
+
+function montarSelectStatusFiltro() {
+  if (!statusKeyAtual) return;
+  const sel = document.getElementById('fStatus');
+  opcoesCarregadas[statusKeyAtual].forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    sel.appendChild(opt);
+  });
+}
+
+const STATUS_CORES = {
+  'NOVO': 'var(--blue)',
+  'QUALIFICANDO': 'var(--amber)',
+  'DESCARTE': 'var(--red)'
+};
+function corStatus(status) {
+  const key = (status || '').toUpperCase();
+  return STATUS_CORES[key] || 'var(--ink-soft)';
+}
+
+/* ---------- Lista de leads ---------- */
+async function carregarLista() {
+  const nome = document.getElementById('fNome').value;
+  const telefone = document.getElementById('fTelefone').value;
+  const status = document.getElementById('fStatus').value;
+
+  const listEl = document.getElementById('leadList');
+  listEl.innerHTML = '<div class="lead-list-empty">Carregando...</div>';
+
+  try {
+    const leads = await jsonp({ action: 'listarLeads', nome, telefone, status });
+    renderLista(leads);
+  } catch (err) {
+    listEl.innerHTML = '<div class="lead-list-empty">Erro ao carregar. Confira a URL do Web App.</div>';
+    console.error(err);
+  }
+}
+
+function renderLista(leads) {
+  const listEl = document.getElementById('leadList');
+  document.getElementById('totalLeads').textContent = leads.length + ' lead(s)';
+
+  if (!leads.length) {
+    listEl.innerHTML = '<div class="lead-list-empty">Nenhum lead encontrado</div>';
+    return;
+  }
+
+  listEl.innerHTML = '';
+  leads.forEach(lead => {
+    const item = document.createElement('div');
+    item.className = 'lead-item' + (lead.idCliente === leadSelecionadoId ? ' active' : '');
+    item.innerHTML =
+      '<div class="nome"></div>' +
+      '<div class="meta"><span class="status-dot"></span><span class="status-txt"></span><span class="tel-txt"></span></div>';
+    item.querySelector('.nome').textContent = lead.nome || '(sem nome)';
+    item.querySelector('.status-dot').style.background = corStatus(lead.status);
+    item.querySelector('.status-txt').textContent = lead.status || '—';
+    item.querySelector('.tel-txt').textContent = lead.telefone ? ' · ' + lead.telefone : '';
+    item.addEventListener('click', () => selecionarLead(lead.idCliente));
+    listEl.appendChild(item);
+  });
+}
+
+/* ---------- Detalhe do lead ---------- */
+async function selecionarLead(idCliente) {
+  leadSelecionadoId = idCliente;
+  document.querySelectorAll('.lead-item').forEach(el => el.classList.remove('active'));
+
+  document.getElementById('emptyState').hidden = true;
+  const detail = document.getElementById('leadDetail');
+  detail.hidden = false;
+  document.getElementById('leadNome').textContent = 'Carregando...';
+  document.getElementById('fieldsGrid').innerHTML = '';
+  document.getElementById('conversaList').innerHTML = '';
+
+  try {
+    const lead = await jsonp({ action: 'obterLead', idCliente });
+    if (lead.erro) { alert(lead.erro); return; }
+    renderLeadDetail(lead);
+    carregarLista();
+  } catch (err) {
+    console.error(err);
+    alert('Erro ao carregar o lead.');
+  }
+}
+
+function renderLeadDetail(lead) {
+  document.getElementById('leadNome').textContent = lead.NOME || '(sem nome)';
+
+  const grid = document.getElementById('fieldsGrid');
+  grid.innerHTML = '';
+
+  Object.keys(lead).forEach(chave => {
+    if (CAMPOS_OCULTOS.includes(chave)) return;
+
+    const field = document.createElement('div');
+    field.className = 'field' + (CAMPOS_LARGOS.includes(chave) ? ' wide' : '');
+
+    if (CAMPOS_CHECKBOX.includes(chave)) {
+      field.classList.add('checkbox-field');
+      field.innerHTML = `<input type="checkbox" id="campo_${cssId(chave)}"> <label for="campo_${cssId(chave)}">${chave}</label>`;
+      grid.appendChild(field);
+      const input = field.querySelector('input');
+      input.checked = (String(lead[chave]).toUpperCase() === 'TRUE');
+      input.addEventListener('change', () => salvarCampo(chave, input.checked));
+      return;
+    }
+
+    const isSelect = chave === statusKeyAtual || CAMPOS_SELECT.hasOwnProperty(chave);
+    const isReadonly = CAMPOS_SOMENTE_LEITURA.includes(chave);
+
+    field.innerHTML = `<label>${chave}</label>`;
+    let input;
+    if (isSelect) {
+      input = document.createElement('select');
+      const opcoes = opcoesCarregadas[chave] || [];
+      opcoes.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v; opt.textContent = v;
+        input.appendChild(opt);
+      });
+    } else {
+      input = document.createElement('input');
+      input.type = 'text';
+      if (isReadonly) input.disabled = true;
+    }
+    input.value = lead[chave] || '';
+    field.appendChild(input);
+    grid.appendChild(field);
+
+    if (!isReadonly) {
+      input.addEventListener('change', () => salvarCampo(chave, input.value));
+    }
+  });
+
+  renderConversa(lead.interacoes || []);
+  renderTarefa(lead);
+}
+
+function brParaIso(str) {
+  if (!str) return '';
+  const p = String(str).split('/');
+  if (p.length !== 3) return '';
+  return '20' + p[2] + '-' + p[1] + '-' + p[0];
+}
+
+function renderTarefa(lead) {
+  const dataAtual = lead['DATA TAREFA'] || '';
+  const textoAtual = lead['TAREFA'] || '';
+  const atualEl = document.getElementById('tarefaAtual');
+
+  if (textoAtual) {
+    atualEl.classList.remove('vazia');
+    atualEl.textContent = 'Tarefa atual: ' + textoAtual + (dataAtual ? ' — ' + dataAtual : '');
+  } else {
+    atualEl.classList.add('vazia');
+    atualEl.textContent = 'Nenhuma tarefa cadastrada para este lead.';
+  }
+
+  document.getElementById('tarefaData').value = brParaIso(dataAtual) || hojeISO();
+  document.getElementById('tarefaTexto').value = '';
+}
+
+function cssId(str) {
+  return str.replace(/[^a-zA-Z0-9]/g, '_');
+}
+
+async function salvarCampo(campo, valor) {
+  if (!leadSelecionadoId) return;
+  const indicator = document.getElementById('saveIndicator');
+  try {
+    await jsonp({ action: 'salvarCampoLead', idCliente: leadSelecionadoId, campo, valor });
+    indicator.textContent = 'salvo ✓';
+    indicator.classList.add('show');
+    setTimeout(() => indicator.classList.remove('show'), 1200);
+  } catch (err) {
+    console.error(err);
+    alert('Não foi possível salvar "' + campo + '".');
+  }
+}
+
+function renderConversa(interacoes) {
+  const el = document.getElementById('conversaList');
+  el.innerHTML = '';
+  if (!interacoes.length) {
+    el.innerHTML = '<div class="conversa-empty">Nenhuma interação registrada ainda.</div>';
+    return;
+  }
+  interacoes.forEach(it => {
+    const row = document.createElement('div');
+    row.className = 'conversa-row';
+    row.innerHTML = `<div class="data"></div><div class="texto"></div>`;
+    row.querySelector('.data').textContent = it.data || '';
+    row.querySelector('.texto').textContent = it.texto || '';
+    el.appendChild(row);
+  });
+}
+
+async function adicionarInteracaoUI() {
+  if (!leadSelecionadoId) return;
+  const dataIso = document.getElementById('novaData').value;
+  const texto = document.getElementById('novoTexto').value.trim();
+  if (!dataIso || !texto) { alert('Preencha a data e o texto da interação.'); return; }
+
+  const nome = document.getElementById('leadNome').textContent;
+  const btn = document.getElementById('btnAddInteracao');
+  btn.disabled = true;
+
+  try {
+    const resultado = await jsonp({
+      action: 'adicionarInteracao',
+      idCliente: leadSelecionadoId,
+      nome,
+      data: isoParaBr(dataIso),
+      texto
+    });
+    if (resultado.erro) { alert(resultado.erro); return; }
+    renderConversa(resultado.interacoes || []);
+    document.getElementById('novoTexto').value = '';
+    document.getElementById('novaData').value = hojeISO();
+    carregarLista();
+  } catch (err) {
+    console.error(err);
+    alert('Não foi possível registrar a interação.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* ---------- Novo lead ---------- */
+function abrirModalNovoLead() {
+  const grid = document.getElementById('novoLeadFields');
+  grid.innerHTML = '';
+
+  ORDEM_CAMPOS_NOVO_LEAD.forEach(chave => {
+    const field = document.createElement('div');
+    field.className = 'field' + (CAMPOS_LARGOS.includes(chave) ? ' wide' : '');
+    field.innerHTML = `<label>${chave}</label>`;
+
+    let input;
+    if (CAMPOS_SELECT.hasOwnProperty(chave) && opcoesCarregadas && opcoesCarregadas[chave]) {
+      input = document.createElement('select');
+      const optBlank = document.createElement('option');
+      optBlank.value = ''; optBlank.textContent = '— selecione —';
+      input.appendChild(optBlank);
+      opcoesCarregadas[chave].forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v; opt.textContent = v;
+        input.appendChild(opt);
+      });
+    } else {
+      input = document.createElement('input');
+      input.type = 'text';
+    }
+    input.dataset.campo = chave;
+    field.appendChild(input);
+    grid.appendChild(field);
+  });
+
+  document.getElementById('modalNovoLead').hidden = false;
+}
+
+async function salvarNovoLead() {
+  const inputs = document.querySelectorAll('#novoLeadFields [data-campo]');
+  const dados = {};
+  inputs.forEach(input => { dados[input.dataset.campo] = input.value; });
+
+  if (!dados['NOME']) { alert('Preencha ao menos o nome do lead.'); return; }
+
+  const btn = document.getElementById('btnSalvarNovo');
+  btn.disabled = true;
+  try {
+    const resultado = await jsonp({ action: 'criarLead', dados: JSON.stringify(dados) });
+    if (resultado.erro) { alert(resultado.erro); return; }
+    document.getElementById('modalNovoLead').hidden = true;
+    await carregarLista();
+    selecionarLead(resultado.idCliente);
+  } catch (err) {
+    console.error(err);
+    alert('Não foi possível criar o lead.');
+  } finally {
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>
