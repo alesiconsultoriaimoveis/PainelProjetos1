@@ -36,12 +36,22 @@
   }
   h1, h2, h3 { font-family: 'Manrope', 'Inter', sans-serif; margin: 0; }
 
-  .app { display: flex; height: 100vh; }
+  .app-wrapper { display: flex; flex-direction: column; height: 100vh; }
+
+  .dashboard-header {
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    padding: 16px 24px;
+    flex-shrink: 0;
+  }
+
+  .app { display: flex; flex: 1; min-height: 0; }
 
   /* ---------- Sidebar ---------- */
   .sidebar {
-    width: 340px;
-    min-width: 340px;
+    width: 30%;
+    min-width: 260px;
+    max-width: 420px;
     background: var(--panel);
     border-right: 1px solid var(--line);
     display: flex;
@@ -119,7 +129,39 @@
   .lead-list-empty { padding: 30px 10px; text-align: center; color: var(--ink-soft); font-size: 13px; }
 
   /* ---------- Main panel ---------- */
-  .panel { flex: 1; overflow-y: auto; padding: 28px 36px; }
+  .panel { flex: 1 1 70%; min-width: 0; overflow-y: auto; padding: 28px 36px; }
+
+  .dashboard-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    min-width: 108px;
+    box-shadow: var(--shadow);
+    cursor: default;
+  }
+  .card.clickable { cursor: pointer; transition: transform 0.08s ease, border-color 0.08s ease; }
+  .card.clickable:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .card.active { border-color: var(--accent); background: var(--accent-soft); }
+  .card .num { font-size: 22px; font-weight: 800; font-family: 'Manrope', sans-serif; line-height: 1.1; }
+  .card .lbl { font-size: 11.5px; color: var(--ink-soft); font-weight: 600; text-transform: uppercase; letter-spacing: 0.02em; margin-top: 2px; display: flex; align-items: center; gap: 5px; }
+  .card.alerta .num { color: var(--red); }
+  .regiao-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .regiao-chip {
+    background: var(--line-soft);
+    color: var(--ink-soft);
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 999px;
+  }
+  .regiao-chip b { color: var(--ink); }
+
   .empty-state {
     height: 100%;
     display: flex;
@@ -158,6 +200,10 @@
   }
   .field.checkbox-field { flex-direction: row; align-items: center; gap: 8px; }
   .field.checkbox-field label { text-transform: none; font-size: 13px; font-weight: 500; }
+
+  .novo-lead-actions { margin-top: 14px; }
+  .novo-lead-actions[hidden] { display: none; }
+  #btnCriarLeadInline { width: 100%; padding: 12px; font-size: 14px; }
 
   .tarefa-section { margin-top: 22px; }
   .tarefa-section h3 { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
@@ -269,7 +315,8 @@
 
   @media (max-width: 760px) {
     .app { flex-direction: column; }
-    .sidebar { width: 100%; min-width: 0; max-height: 45vh; border-right: none; border-bottom: 1px solid var(--line); }
+    .sidebar { width: 100%; max-width: none; min-width: 0; max-height: 45vh; border-right: none; border-bottom: 1px solid var(--line); }
+    .panel { flex-basis: auto; }
     .fields-grid { grid-template-columns: 1fr; }
     .panel { padding: 18px; }
     .conversa-new { grid-template-columns: 1fr; }
@@ -279,31 +326,38 @@
 </head>
 <body>
 
-<div class="app">
-  <aside class="sidebar">
-    <div>
-      <h1>Leads</h1>
-      <div class="sidebar-sub" id="totalLeads">carregando...</div>
-    </div>
-    <div class="filters">
-      <input id="fNome" type="text" placeholder="Buscar por nome...">
-      <input id="fTelefone" type="text" placeholder="Buscar por telefone...">
-      <select id="fStatus"><option value="">Todos os status</option></select>
-    </div>
-    <button class="btn-primary" id="btnNovoLead">+ Novo lead</button>
-    <div class="lead-list" id="leadList"></div>
-  </aside>
+<div class="app-wrapper">
+  <header class="dashboard-header">
+    <div class="dashboard-bar" id="dashboardBar"></div>
+  </header>
 
-  <main class="panel">
-    <div class="empty-state" id="emptyState">Selecione um lead na lista ao lado</div>
-    <div class="lead-detail" id="leadDetail" hidden>
+  <div class="app">
+    <aside class="sidebar">
+      <div>
+        <h1>Leads</h1>
+        <div class="sidebar-sub" id="totalLeads">carregando...</div>
+      </div>
+      <div class="filters">
+        <input id="fNome" type="text" placeholder="Buscar por nome...">
+        <input id="fTelefone" type="text" placeholder="Buscar por telefone...">
+        <select id="fStatus"><option value="">Todos os status</option></select>
+      </div>
+      <button class="btn-primary" id="btnNovoLead">+ Novo lead</button>
+      <div class="lead-list" id="leadList"></div>
+    </aside>
+
+    <main class="panel">
+      <div class="lead-detail" id="leadDetail">
       <div class="lead-header">
-        <h2 id="leadNome">—</h2>
+        <h2 id="leadNome">Novo lead</h2>
         <span class="save-indicator" id="saveIndicator">salvo</span>
       </div>
       <div class="fields-grid" id="fieldsGrid"></div>
+      <div class="novo-lead-actions" id="novoLeadActions">
+        <button class="btn-primary" id="btnCriarLeadInline">Criar lead</button>
+      </div>
 
-      <div class="tarefa-section">
+      <div class="tarefa-section" id="tarefaSection">
         <h3>Tarefa</h3>
         <div class="tarefa-atual" id="tarefaAtual"></div>
         <div class="tarefa-form">
@@ -313,7 +367,7 @@
         </div>
       </div>
 
-      <div class="conversa-section">
+      <div class="conversa-section" id="conversaSection">
         <h3>Conversa</h3>
         <div class="conversa-list" id="conversaList"></div>
         <div class="conversa-new">
@@ -324,16 +378,6 @@
       </div>
     </div>
   </main>
-</div>
-
-<div class="modal" id="modalNovoLead" hidden>
-  <div class="modal-content">
-    <h2>Novo lead</h2>
-    <div class="fields-grid" id="novoLeadFields"></div>
-    <div class="modal-actions">
-      <button class="btn-secondary" id="btnCancelarNovo">Cancelar</button>
-      <button class="btn-primary" id="btnSalvarNovo">Criar lead</button>
-    </div>
   </div>
 </div>
 
@@ -341,7 +385,7 @@
 /* =========================================================
    CONFIGURAÇÃO — troque pela URL do seu Web App (termina em /exec)
    ========================================================= */
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby0GR0_JpjPVw3tdDpIy8N9Bqf437WOngfKwlNZAFVvs-UidJkdmO2BpsmlYMuXsGpkdA/exec';
+const WEB_APP_URL = 'COLE_AQUI_A_URL_DO_WEB_APP/exec';
 
 /* Campos e como exibi-los no painel direito e no formulário de novo lead.
    Ajuste os nomes de chave (key) se o cabeçalho real da planilha for diferente. */
@@ -383,6 +427,75 @@ function jsonp(params) {
   });
 }
 
+/* ---------- Dashboard de métricas ---------- */
+async function carregarMetricas() {
+  try {
+    const metricas = await jsonp({ action: 'obterMetricas' });
+    renderDashboard(metricas);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function renderDashboard(m) {
+  const bar = document.getElementById('dashboardBar');
+  bar.innerHTML = '';
+
+  bar.appendChild(criarCard('Total de leads', m.total, null, false));
+
+  Object.keys(m.porStatus || {}).forEach(status => {
+    const card = criarCard(status, m.porStatus[status], status, true);
+    bar.appendChild(card);
+  });
+
+  const tarefaCard = criarCard('Tarefas pendentes', m.tarefasPendentes || 0, null, false);
+  if ((m.tarefasPendentes || 0) > 0) tarefaCard.classList.add('alerta');
+  bar.appendChild(tarefaCard);
+
+  // Região vira uma linha de chips discreta, sem virar filtro
+  const chipsExistente = document.getElementById('regiaoChips');
+  if (chipsExistente) chipsExistente.remove();
+  if (m.porRegiao && Object.keys(m.porRegiao).length) {
+    const chips = document.createElement('div');
+    chips.className = 'regiao-chips';
+    chips.id = 'regiaoChips';
+    Object.keys(m.porRegiao).sort().forEach(regiao => {
+      const chip = document.createElement('span');
+      chip.className = 'regiao-chip';
+      chip.innerHTML = `<b>${m.porRegiao[regiao]}</b> ${regiao}`;
+      chips.appendChild(chip);
+    });
+    bar.insertAdjacentElement('afterend', chips);
+  }
+
+  atualizarCardsAtivos();
+}
+
+function criarCard(label, numero, statusFiltro, clicavel) {
+  const card = document.createElement('div');
+  card.className = 'card' + (clicavel ? ' clickable' : '');
+  if (statusFiltro) card.dataset.status = statusFiltro;
+  card.innerHTML =
+    `<div class="num">${numero}</div>` +
+    `<div class="lbl">${statusFiltro ? `<span class="status-dot" style="background:${corStatus(statusFiltro)}"></span>` : ''}${label}</div>`;
+  if (clicavel) {
+    card.addEventListener('click', () => {
+      const sel = document.getElementById('fStatus');
+      sel.value = (sel.value === statusFiltro) ? '' : statusFiltro;
+      carregarLista();
+      atualizarCardsAtivos();
+    });
+  }
+  return card;
+}
+
+function atualizarCardsAtivos() {
+  const statusAtivo = document.getElementById('fStatus').value;
+  document.querySelectorAll('.card[data-status]').forEach(card => {
+    card.classList.toggle('active', card.dataset.status === statusAtivo);
+  });
+}
+
 /* ---------- Inicialização ---------- */
 document.addEventListener('DOMContentLoaded', init);
 
@@ -398,16 +511,15 @@ async function init() {
   }
 
   await carregarLista();
+  await carregarMetricas();
+  iniciarNovoLead();
 
   document.getElementById('fNome').addEventListener('input', debounce(carregarLista, 350));
   document.getElementById('fTelefone').addEventListener('input', debounce(carregarLista, 350));
-  document.getElementById('fStatus').addEventListener('change', carregarLista);
+  document.getElementById('fStatus').addEventListener('change', () => { carregarLista(); atualizarCardsAtivos(); });
 
-  document.getElementById('btnNovoLead').addEventListener('click', abrirModalNovoLead);
-  document.getElementById('btnCancelarNovo').addEventListener('click', () => {
-    document.getElementById('modalNovoLead').hidden = true;
-  });
-  document.getElementById('btnSalvarNovo').addEventListener('click', salvarNovoLead);
+  document.getElementById('btnNovoLead').addEventListener('click', iniciarNovoLead);
+  document.getElementById('btnCriarLeadInline').addEventListener('click', criarLeadInline);
   document.getElementById('btnAddInteracao').addEventListener('click', adicionarInteracaoUI);
   document.getElementById('btnSalvarTarefa').addEventListener('click', salvarTarefaUI);
 }
@@ -432,6 +544,7 @@ async function salvarTarefaUI() {
     atualEl.classList.remove('vazia');
     atualEl.textContent = 'Tarefa atual: ' + texto + (dataIso ? ' — ' + isoParaBr(dataIso) : '');
     document.getElementById('tarefaTexto').value = '';
+    carregarMetricas();
   } catch (err) {
     console.error(err);
     alert('Não foi possível salvar a tarefa.');
@@ -522,9 +635,9 @@ async function selecionarLead(idCliente) {
   leadSelecionadoId = idCliente;
   document.querySelectorAll('.lead-item').forEach(el => el.classList.remove('active'));
 
-  document.getElementById('emptyState').hidden = true;
-  const detail = document.getElementById('leadDetail');
-  detail.hidden = false;
+  document.getElementById('novoLeadActions').hidden = true;
+  document.getElementById('tarefaSection').hidden = false;
+  document.getElementById('conversaSection').hidden = false;
   document.getElementById('leadNome').textContent = 'Carregando...';
   document.getElementById('fieldsGrid').innerHTML = '';
   document.getElementById('conversaList').innerHTML = '';
@@ -629,6 +742,7 @@ async function salvarCampo(campo, valor) {
     indicator.textContent = 'salvo ✓';
     indicator.classList.add('show');
     setTimeout(() => indicator.classList.remove('show'), 1200);
+    carregarMetricas();
   } catch (err) {
     console.error(err);
     alert('Não foi possível salvar "' + campo + '".');
@@ -683,9 +797,17 @@ async function adicionarInteracaoUI() {
   }
 }
 
-/* ---------- Novo lead ---------- */
-function abrirModalNovoLead() {
-  const grid = document.getElementById('novoLeadFields');
+/* ---------- Novo lead (inline, no mesmo painel) ---------- */
+function iniciarNovoLead() {
+  leadSelecionadoId = null;
+  document.querySelectorAll('.lead-item').forEach(el => el.classList.remove('active'));
+
+  document.getElementById('leadNome').textContent = 'Novo lead';
+  document.getElementById('novoLeadActions').hidden = false;
+  document.getElementById('tarefaSection').hidden = true;
+  document.getElementById('conversaSection').hidden = true;
+
+  const grid = document.getElementById('fieldsGrid');
   grid.innerHTML = '';
 
   ORDEM_CAMPOS_NOVO_LEAD.forEach(chave => {
@@ -712,24 +834,22 @@ function abrirModalNovoLead() {
     field.appendChild(input);
     grid.appendChild(field);
   });
-
-  document.getElementById('modalNovoLead').hidden = false;
 }
 
-async function salvarNovoLead() {
-  const inputs = document.querySelectorAll('#novoLeadFields [data-campo]');
+async function criarLeadInline() {
+  const inputs = document.querySelectorAll('#fieldsGrid [data-campo]');
   const dados = {};
   inputs.forEach(input => { dados[input.dataset.campo] = input.value; });
 
   if (!dados['NOME']) { alert('Preencha ao menos o nome do lead.'); return; }
 
-  const btn = document.getElementById('btnSalvarNovo');
+  const btn = document.getElementById('btnCriarLeadInline');
   btn.disabled = true;
   try {
     const resultado = await jsonp({ action: 'criarLead', dados: JSON.stringify(dados) });
     if (resultado.erro) { alert(resultado.erro); return; }
-    document.getElementById('modalNovoLead').hidden = true;
     await carregarLista();
+    await carregarMetricas();
     selecionarLead(resultado.idCliente);
   } catch (err) {
     console.error(err);
