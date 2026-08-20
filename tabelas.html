@@ -938,19 +938,27 @@ function renderInfo(){
 function renderImplant(){
   var proj=document.getElementById('implantProjeto').value,cont=document.getElementById('implantContent');
   if(!proj){cont.innerHTML='<div class="empty-state"><div class="icon">🗺️</div><h3>Selecione um projeto</h3></div>';return;}
-  var img=implantacoes[proj];
+  var nomeArquivo = proj + ' - IMPLANTACAO PRUMADAS.webp';
+  var urlGithub = 'implantacoes/' + nomeArquivo;
   if(img){
     // Tem imagem: mostra em destaque com botões discretos acima
-    cont.innerHTML=''
-      +'<input type="file" id="fi_'+proj+'" accept="image/*" style="display:none">'
-      +'<div class="implant-toolbar">'
-        +'<button class="btn-trocar" onclick="document.getElementById(\'fi_'+proj+'\').click()">📎 Trocar imagem</button>'
-        +'<button class="btn-remover" onclick="removerImplant(\''+proj+'\')">🗑️ Remover</button>'
+      cont.innerHTML = ''
+    +'<div class="implant-img-wrap show">'
+      +'<img src="'+urlGithub+'" alt="Implantação" '
+      +'onclick="abrirLightbox(\''+proj+'\')" '
+      +'title="Clique para ampliar" '
+      +'onerror="this.parentElement.style.display=\'none\';document.getElementById(\'implant-upload-'+proj.replace(/[^a-z0-9]/gi,\'_\')+'\').style.display=\'\'">'
+      +'<div class="implant-hint">🔍 Clique na imagem para ver em tela cheia</div>'
+    +'</div>'
+    +'<div id="implant-upload-'+proj.replace(/[^a-z0-9]/gi,'_')+'" style="display:none">'
+      +'<div class="implant-empty">'
+        +'<div style="font-size:40px">🗺️</div>'
+        +'<p>Imagem não encontrada no GitHub</p>'
+        +'<span>Suba o arquivo: '+nomeArquivo+'</span>'
       +'</div>'
-      +'<div class="implant-img-wrap show">'
-        +'<img src="'+img+'" alt="Implantação" onclick="abrirLightbox(\''+proj+'\')" title="Clique para ampliar">'
-        +'<div class="implant-hint">🔍 Clique na imagem para ver em tela cheia</div>'
-      +'</div>';
+    +'</div>';
+  // Atualiza lightbox para usar URL do GitHub
+  implantacoes[proj] = urlGithub;
   }else{
     // Sem imagem: área de upload centralizada
     cont.innerHTML=''
