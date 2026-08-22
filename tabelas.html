@@ -938,33 +938,23 @@ function renderInfo(){
 function renderImplant(){
   var proj=document.getElementById('implantProjeto').value,cont=document.getElementById('implantContent');
   if(!proj){cont.innerHTML='<div class="empty-state"><div class="icon">🗺️</div><h3>Selecione um projeto</h3></div>';return;}
-  var img=implantacoes[proj];
-  if(img){
-    // Tem imagem: mostra em destaque com botões discretos acima
-    cont.innerHTML=''
-      +'<input type="file" id="fi_'+proj+'" accept="image/*" style="display:none">'
-      +'<div class="implant-toolbar">'
-        +'<button class="btn-trocar" onclick="document.getElementById(\'fi_'+proj+'\').click()">📎 Trocar imagem</button>'
-        +'<button class="btn-remover" onclick="removerImplant(\''+proj+'\')">🗑️ Remover</button>'
-      +'</div>'
-      +'<div class="implant-img-wrap show">'
-        +'<img src="'+img+'" alt="Implantação" onclick="abrirLightbox(\''+proj+'\')" title="Clique para ampliar">'
-        +'<div class="implant-hint">🔍 Clique na imagem para ver em tela cheia</div>'
-      +'</div>';
-  }else{
-    // Sem imagem: área de upload centralizada
-    cont.innerHTML=''
-      +'<input type="file" id="fi_'+proj+'" accept="image/*" style="display:none">'
-      +'<div class="implant-empty" onclick="document.getElementById(\'fi_'+proj+'\').click()">'
-        +'<div style="font-size:40px">🗺️</div>'
-        +'<p>Adicionar imagem de implantação</p>'
-        +'<span>JPG, PNG, WebP ou GIF</span>'
-      +'</div>';
-  }
-  setTimeout(function(){
-    var inp=document.getElementById('fi_'+proj);
-    if(inp)inp.addEventListener('change',function(){uploadImplant(proj,inp);});
-  },100);
+  var nomeArquivo = proj + ' - IMPLANTACAO PRUMADAS.webp';
+  var urlGithub = 'implantacoes/' + nomeArquivo;
+  cont.innerHTML=''
+    +'<div class="implant-img-wrap show">'
+      +'<img src="'+urlGithub+'" alt="Implantação" onclick="abrirLightbox(\''+proj+'\')" title="Clique para ampliar" onerror="mostrarImplantFaltando(this,\''+nomeArquivo.replace(/'/g,"\\'")+'\')">'
+      +'<div class="implant-hint">🔍 Clique na imagem para ver em tela cheia</div>'
+    +'</div>';
+  implantacoes[proj]=urlGithub;
+}
+
+function mostrarImplantFaltando(imgEl,nomeArquivo){
+  var cont=document.getElementById('implantContent');
+  cont.innerHTML='<div class="implant-empty" style="cursor:default">'
+    +'<div style="font-size:40px">🗺️</div>'
+    +'<p>Imagem de implantação não encontrada</p>'
+    +'<span>Envie o arquivo <strong>'+nomeArquivo+'</strong> para a pasta <strong>implantacoes/</strong> no GitHub</span>'
+    +'</div>';
 }
 
 function uploadImplant(proj,input){
