@@ -68,6 +68,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .filtro-group{display:flex;flex-direction:column;gap:3px;min-width:90px}
 .filtro-group label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:500}
 .filtro-group select{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--text);cursor:pointer;outline:none}
+.filtro-preco{min-width:190px}
+.price-slider-wrap{position:relative;height:22px;margin-top:4px}
+.price-slider-track{position:absolute;top:50%;left:0;right:0;height:4px;background:var(--border);border-radius:2px;transform:translateY(-50%)}
+.price-slider-range{position:absolute;top:0;bottom:0;background:var(--accent);border-radius:2px}
+.price-slider-input{position:absolute;top:50%;left:0;width:100%;transform:translateY(-50%);margin:0;background:transparent;-webkit-appearance:none;appearance:none;height:16px;pointer-events:none}
+.price-slider-input#fPrecoMin{z-index:3}
+.price-slider-input#fPrecoMax{z-index:4}
+.price-slider-input::-webkit-slider-runnable-track{background:transparent;height:16px}
+.price-slider-input::-moz-range-track{background:transparent;height:16px}
+.price-slider-input::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;pointer-events:auto;width:15px;height:15px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer;margin-top:0}
+.price-slider-input::-moz-range-thumb{pointer-events:auto;width:15px;height:15px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer}
+.price-slider-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:2px}
 .filtros-actions{display:flex;gap:8px;align-items:flex-end;margin-left:auto}
 .btn-limpar{padding:5px 12px;font-size:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif}
 .contagem-bar{padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
@@ -236,17 +248,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <option value="">Todas</option><option value="com">Com vaga</option><option value="sem">Sem vaga</option>
         </select>
       </div>
-      <div class="filtro-group"><label>Faixa de Preço</label>
-        <select id="fPreco" onchange="aplicarFiltros()">
-          <option value="">Qualquer</option>
-          <option value="0-250000">Até R$ 250.000</option>
-          <option value="250001-300000">R$ 250 a 300 mil</option>
-          <option value="300001-350000">R$ 300 a 350 mil</option>
-          <option value="350001-400000">R$ 350 a 400 mil</option>
-          <option value="400001-450000">R$ 400 a 450 mil</option>
-          <option value="450001-500000">R$ 450 a 500 mil</option>
-          <option value="500001-">Acima de R$ 500 mil</option>
-        </select>
+      <div class="filtro-group filtro-preco">
+        <label>Faixa de Preço</label>
+        <div class="price-slider-wrap">
+          <div class="price-slider-track"><div class="price-slider-range" id="precoRangeFill"></div></div>
+          <input type="range" id="fPrecoMin" class="price-slider-input" min="0" max="1000000" step="1000" value="0" oninput="onPrecoSliderInput()">
+          <input type="range" id="fPrecoMax" class="price-slider-input" min="0" max="1000000" step="1000" value="1000000" oninput="onPrecoSliderInput()">
+        </div>
+        <div class="price-slider-labels"><span id="precoMinLbl">R$ 0</span><span id="precoMaxLbl">R$ 0</span></div>
       </div>
       <div class="filtros-actions"><button class="btn-limpar" onclick="limparFiltros()">✕ Limpar</button></div>
     </div>
@@ -302,6 +311,7 @@ let regioesList=[],atualizandoTudo=false,filaAtualiz=[],idxAtualiz=0;
 let implantacoes=JSON.parse(localStorage.getItem('implantacoes')||'{}');
 let torresData={};
 let projetoAtivo='';
+let precoLimiteMin=0,precoLimiteMax=1000000,precoSelMin=0,precoSelMax=1000000,precoContextoAtual=null;
 let totaisEditaveis=JSON.parse(localStorage.getItem('totaisEditaveis')||'{}');
 
 const CACHE_PFX='tabcache_',CACHE_VER='v2';
@@ -530,11 +540,63 @@ function popularSelects(){
   });
 }
 
+// ── SLIDER DE PREÇO (duplo) ──────────────────────────────
+function fmtValCompacto(v){
+  v=Number(v)||0;
+  if(v>=1000000)return 'R$ '+(v%1000000===0?(v/1000000):(v/1000000).toFixed(1))+'mi';
+  if(v>=1000)return 'R$ '+Math.round(v/1000)+'mil';
+  return 'R$ '+v;
+}
+function calcularLimitesPreco(proj){
+  var uns=todosUnidades.filter(function(u){return u.valor>0&&(!proj||u.projeto===proj);});
+  if(!uns.length)return{min:0,max:0};
+  var vals=uns.map(function(u){return u.valor;});
+  var min=Math.floor(Math.min.apply(null,vals)/1000)*1000;
+  var max=Math.ceil(Math.max.apply(null,vals)/1000)*1000;
+  if(min===max)max=min+1000;
+  return{min:min,max:max};
+}
+function atualizarSliderPreco(proj){
+  var lim=calcularLimitesPreco(proj);
+  var chave=proj||'__todos__';
+  var mudouContexto=chave!==precoContextoAtual;
+  precoContextoAtual=chave;
+  precoLimiteMin=lim.min;precoLimiteMax=lim.max;
+  var elMin=document.getElementById('fPrecoMin'),elMax=document.getElementById('fPrecoMax');
+  var step=Math.max(1000,Math.round((precoLimiteMax-precoLimiteMin)/100/1000)*1000)||1000;
+  [elMin,elMax].forEach(function(el){el.min=precoLimiteMin;el.max=precoLimiteMax;el.step=step;});
+  if(mudouContexto){
+    precoSelMin=precoLimiteMin;precoSelMax=precoLimiteMax;
+  }else{
+    precoSelMin=Math.max(precoLimiteMin,Math.min(precoSelMin,precoLimiteMax));
+    precoSelMax=Math.min(precoLimiteMax,Math.max(precoSelMax,precoLimiteMin));
+  }
+  elMin.value=precoSelMin;elMax.value=precoSelMax;
+  renderSliderPrecoVisual();
+}
+function onPrecoSliderInput(){
+  var elMin=document.getElementById('fPrecoMin'),elMax=document.getElementById('fPrecoMax');
+  var vMin=parseInt(elMin.value)||0,vMax=parseInt(elMax.value)||0;
+  precoSelMin=Math.min(vMin,vMax);precoSelMax=Math.max(vMin,vMax);
+  elMin.value=precoSelMin;elMax.value=precoSelMax;
+  renderSliderPrecoVisual();
+  aplicarFiltros();
+}
+function renderSliderPrecoVisual(){
+  var range=(precoLimiteMax-precoLimiteMin)||1;
+  var pctMin=(precoSelMin-precoLimiteMin)/range*100;
+  var pctMax=(precoSelMax-precoLimiteMin)/range*100;
+  var fill=document.getElementById('precoRangeFill');
+  if(fill){fill.style.left=pctMin+'%';fill.style.right=(100-pctMax)+'%';}
+  var lblMin=document.getElementById('precoMinLbl'),lblMax=document.getElementById('precoMaxLbl');
+  if(lblMin)lblMin.textContent=fmtValCompacto(precoSelMin);
+  if(lblMax)lblMax.textContent=fmtValCompacto(precoSelMax);
+}
+
 function aplicarFiltros(){
   var fP=document.getElementById('fProjeto').value,fT=document.getElementById('fTorre').value,
       fD=document.getElementById('fDorms').value,fTi=document.getElementById('fTipo').value,
-      fA=document.getElementById('fAndar').value,fVg=document.getElementById('fVagas').value,
-      fPr=document.getElementById('fPreco').value;
+      fA=document.getElementById('fAndar').value,fVg=document.getElementById('fVagas').value;
 
   if(fP && fP !== projetoAtivo){
     projetoAtivo = fP;
@@ -544,18 +606,18 @@ function aplicarFiltros(){
   }
 
   atualizarFiltrosDinamicos(fP);
+  atualizarSliderPreco(fP);
   document.getElementById('tabEspelho').style.display=fP?'':'none';
+
+  var precoFiltroAtivo = (precoSelMin>precoLimiteMin)||(precoSelMax<precoLimiteMax);
 
   var fil=todosUnidades.filter(function(u){
     if(fP&&u.projeto!==fP)return false;if(fT&&u.torre!==fT)return false;
     if(fD&&String(u.dorms)!==fD)return false;if(fTi&&u.tipo!==fTi)return false;
     if(fA&&String(u.andar)!==fA)return false;
     if(fVg==='com'&&!(u.vagas>0))return false;if(fVg==='sem'&&u.vagas>0)return false;
-    if(fPr){
-      var partes=fPr.split('-');
-      var precoMin=parseFloat(partes[0])||0;
-      var precoMax=partes[1]!==''?parseFloat(partes[1]):Infinity;
-      if(u.valor<=0||u.valor<precoMin||u.valor>precoMax)return false;
+    if(precoFiltroAtivo){
+      if(u.valor<=0||u.valor<precoSelMin||u.valor>precoSelMax)return false;
     }
     return true;
   });
@@ -576,7 +638,8 @@ function aplicarFiltros(){
 }
 
 function limparFiltros(){
-  ['fProjeto','fTorre','fDorms','fTipo','fAndar','fVagas','fPreco'].forEach(function(id){document.getElementById(id).value='';});
+  ['fProjeto','fTorre','fDorms','fTipo','fAndar','fVagas'].forEach(function(id){document.getElementById(id).value='';});
+  precoContextoAtual=null;
   aplicarFiltros();
 }
 
