@@ -1003,12 +1003,13 @@ function renderImplant(){
   if(!proj){cont.innerHTML='<div class="empty-state"><div class="icon">🗺️</div><h3>Selecione um projeto</h3></div>';return;}
   var nomeArquivo = proj + ' - IMPLANTACAO PRUMADAS.webp';
   var urlGithub = 'implantacoes/' + nomeArquivo;
+  var urlSemCache = urlGithub + '?v=' + Date.now();
   cont.innerHTML=''
     +'<div class="implant-img-wrap show">'
-      +'<img src="'+urlGithub+'" alt="Implantação" onclick="abrirLightbox(\''+proj+'\')" title="Clique para ampliar" onerror="mostrarImplantFaltando(this,\''+nomeArquivo.replace(/'/g,"\\'")+'\')">'
+      +'<img src="'+urlSemCache+'" alt="Implantação" onclick="abrirLightbox(\''+proj+'\')" title="Clique para ampliar" onerror="mostrarImplantFaltando(this,\''+nomeArquivo.replace(/'/g,"\\'")+'\')">'
       +'<div class="implant-hint">🔍 Clique na imagem para ver em tela cheia</div>'
     +'</div>';
-  implantacoes[proj]=urlGithub;
+  implantacoes[proj]=urlSemCache;
 }
 
 function mostrarImplantFaltando(imgEl,nomeArquivo){
