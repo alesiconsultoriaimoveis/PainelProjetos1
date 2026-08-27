@@ -87,7 +87,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 12px 24px}
 @media(max-width:900px){.cards-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:600px){.cards-grid{grid-template-columns:repeat(2,1fr)}}
-.projeto-header{grid-column:1/-1;font-family: 'Science Gothic', sans-serif;font-size:15px;font-weight:700;padding:14px 0 4px;border-bottom:2px solid var(--border);margin-bottom:4px;display:flex;align-items:center;justify-content:space-between}
+.projeto-header{grid-column:1/-1;font-family: 'Science Gothic', sans-serif;font-size:15px;font-weight:700;padding:14px 12px 4px;margin:0 -12px 4px;border-bottom:2px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:97px;background:var(--bg);z-index:80}
 .projeto-header .proj-count{font-size:12px;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400}
 .unit-card{background:var(--surface);border-radius:14px;border:1.5px solid var(--border);padding:12px;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .unit-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--tipo-color)}
