@@ -875,7 +875,8 @@ function atualizarFiltrosDinamicos(proj){
     el.innerHTML='<option value="">Todos</option>'+arr.map(function(v){
       return '<option value="'+v+'">'+(fmt?fmt(v):v)+'</option>';
     }).join('');
-    if(val&&arr.indexOf(val)>=0)el.value=val;
+    var arrStr=arr.map(String);
+    if(val&&arrStr.indexOf(val)>=0)el.value=val;
     else el.value='';
   }
   var torres=[...new Set(unidsProjeto.map(function(u){return u.torre;}))].sort();
