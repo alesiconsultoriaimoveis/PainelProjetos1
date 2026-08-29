@@ -120,7 +120,7 @@
 
   .project-sidebar {
     width: 28px; flex-shrink: 0;
-    background: var(--accent); color: #fff;
+    background: var(--accent); color: var(--accent-text, #fff);
     display: flex; align-items: center; justify-content: center;
     font-family: 'Science Gothic', sans-serif; font-size: 10px; font-weight: 700;
     letter-spacing: 1px; text-transform: uppercase;
@@ -350,12 +350,15 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyDbp9wZBMpLkm3WuWG
 const ACCENTS = ['#3b7cf4','#8b5cf6','#059669','#ef4444','#f59e0b','#06b6d4','#ec4899','#10b981'];
 const EMOJIS  = ['📄','📁','🌐','📊','📝','📌','🔗','💼','📅','🖼️','📧','💬','🎯','📦','🔧','⚙️','📱','💻','🗂️','🏗️','📐','📋','🧾','💡','🔐','📤','📥','🎨','🎬','🎵','📸','🧩','🗺️','📞','🔍','✅'];
 const REGIAO_COLORS = {
-  'NORTE':     '#3b7cf4',
-  'SUL':       '#f59e0b',
-  'LESTE':     '#059669',
-  'OESTE':     '#06b6d4',
-  'CENTRO':    '#8b5cf6',
-  'GRANDE SP': '#ec4899'
+  'NORTE':     '#335C67',
+  'SUL':       '#9E2A2B',
+  'LESTE':     '#4A5D45',
+  'OESTE':     '#540B0E',
+  'CENTRO':    '#E09F3E',
+  'GRANDE SP': '#FFF3B0'
+};
+const REGIAO_TEXT_COLORS = {
+  'GRANDE SP': '#1a1a2e'
 };
 
 let projects       = [];
@@ -475,6 +478,7 @@ function renderAll() {
     const box = document.createElement('div');
     box.className = 'project-box' + (editMode ? ' editing' : '');
     box.style.setProperty('--accent', p.color);
+    box.style.setProperty('--accent-text', REGIAO_TEXT_COLORS[p.regiao] || '#fff');
     box.dataset.idx = idx;
     box.style.animation = `fadeUp 0.3s ease ${idx * 0.04}s both`;
 
