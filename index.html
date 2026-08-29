@@ -99,14 +99,11 @@
   .project-box {
     background: var(--surface);
     border-radius: 16px; border: 1.5px solid var(--border);
-    padding: 14px 12px 12px;
-    position: relative; overflow: visible;
+    padding: 0;
+    position: relative; overflow: hidden;
+    display: flex; align-items: stretch;
     transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
     box-shadow: var(--shadow);
-  }
-  .project-box::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-    background: var(--accent); border-radius: 16px 16px 0 0; pointer-events: none;
   }
   .project-box.is-dragging-src { opacity: 0.3; transform: scale(0.96); }
   .project-box.is-drag-over {
@@ -120,6 +117,20 @@
     transition: none !important; overflow: hidden;
   }
   @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+  .project-sidebar {
+    width: 28px; flex-shrink: 0;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Science Gothic', sans-serif; font-size: 10px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    writing-mode: vertical-rl; transform: rotate(180deg);
+    white-space: nowrap; padding: 8px 0;
+  }
+  .project-content {
+    flex: 1; min-width: 0; padding: 14px 12px 12px;
+    position: relative;
+  }
 
   .drag-handle {
     display: none; position: absolute; top: 8px; right: 8px;
@@ -338,6 +349,14 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyDbp9wZBMpLkm3WuWG
 
 const ACCENTS = ['#3b7cf4','#8b5cf6','#059669','#ef4444','#f59e0b','#06b6d4','#ec4899','#10b981'];
 const EMOJIS  = ['📄','📁','🌐','📊','📝','📌','🔗','💼','📅','🖼️','📧','💬','🎯','📦','🔧','⚙️','📱','💻','🗂️','🏗️','📐','📋','🧾','💡','🔐','📤','📥','🎨','🎬','🎵','📸','🧩','🗺️','📞','🔍','✅'];
+const REGIAO_COLORS = {
+  'NORTE':     '#3b7cf4',
+  'SUL':       '#f59e0b',
+  'LESTE':     '#059669',
+  'OESTE':     '#06b6d4',
+  'CENTRO':    '#8b5cf6',
+  'GRANDE SP': '#ec4899'
+};
 
 let projects       = [];
 let editMode       = false;
@@ -371,9 +390,11 @@ function carregarProjetos() {
         const extras = extraLinks[key] || [];
         // Marca atalhos da planilha com _fromSheet para não duplicar
         const sheetShortcuts = p.shortcuts.map(s => ({ ...s, _fromSheet: true }));
+        const regiaoNorm = (p.regiao || '').toString().trim().toUpperCase();
         return {
           nome:      p.nome,
-          color:     ACCENTS[idx % ACCENTS.length],
+          regiao:    regiaoNorm,
+          color:     REGIAO_COLORS[regiaoNorm] || ACCENTS[idx % ACCENTS.length],
           shortcuts: [...sheetShortcuts, ...extras],
           key
         };
@@ -470,19 +491,22 @@ function renderAll() {
       ? '<div class="empty-hint">Toque + para adicionar</div>' : '';
 
     box.innerHTML = `
-      <div class="drag-handle" data-idx="${idx}">⠿</div>
-      <div class="project-header">
-        <span class="project-name">${p.nome}</span>
-        <div class="project-meta">
-          <span class="project-count">${p.shortcuts.length} atalho${p.shortcuts.length!==1?'s':''}</span>
-          <button class="delete-project-btn" onclick="deleteProject(${idx})">✕</button>
+      <div class="project-sidebar">${p.regiao || ''}</div>
+      <div class="project-content">
+        <div class="drag-handle" data-idx="${idx}">⠿</div>
+        <div class="project-header">
+          <span class="project-name">${p.nome}</span>
+          <div class="project-meta">
+            <span class="project-count">${p.shortcuts.length} atalho${p.shortcuts.length!==1?'s':''}</span>
+            <button class="delete-project-btn" onclick="deleteProject(${idx})">✕</button>
+          </div>
         </div>
-      </div>
-      <div class="shortcuts">
-        ${scHTML}${hint}
-        <div class="shortcut shortcut-add" onclick="showAddShortcut(${idx})">
-          <div class="shortcut-icon">＋</div>
-          <span class="shortcut-label">Adicionar</span>
+        <div class="shortcuts">
+          ${scHTML}${hint}
+          <div class="shortcut shortcut-add" onclick="showAddShortcut(${idx})">
+            <div class="shortcut-icon">＋</div>
+            <span class="shortcut-label">Adicionar</span>
+          </div>
         </div>
       </div>`;
 
