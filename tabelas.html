@@ -499,6 +499,7 @@ function voltarRegioes(){
   regiaoAtiva='';
   projetoAtivo='';
   todosUnidades=[];todosInfos=[];meta={};torresData={};
+  precoContextoAtual=null;
   // Reseta aba ativa para Busca
   abaAtiva='busca';
   ['abaBusca','abaEspelho','abaInfo','abaImplant'].forEach(function(id){
@@ -512,6 +513,10 @@ function voltarRegioes(){
     document.getElementById(id).innerHTML='<option value="">-- Selecione --</option>';
   });
   document.getElementById('fProjeto').innerHTML='<option value="">Todos</option>';
+  ['fTorre','fDorms','fTipo','fAndar','fVagas'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)el.value='';
+  });
   // Limpa conteúdos
   document.getElementById('espelhoContent').innerHTML='<div class="empty-state"><div class="icon">📋</div><h3>Selecione um projeto</h3></div>';
   document.getElementById('infoContent').innerHTML='<div class="empty-state"><div class="icon">ℹ️</div><h3>Selecione um projeto</h3></div>';
@@ -558,7 +563,7 @@ function calcularLimitesPreco(proj){
 }
 function atualizarSliderPreco(proj){
   var lim=calcularLimitesPreco(proj);
-  var chave=proj||'__todos__';
+  var chave=regiaoAtiva+'||'+(proj||'__todos__');
   var mudouContexto=chave!==precoContextoAtual;
   precoContextoAtual=chave;
   precoLimiteMin=lim.min;precoLimiteMax=lim.max;
