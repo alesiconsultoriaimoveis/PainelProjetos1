@@ -96,6 +96,30 @@
     padding: 8px 12px 24px;
   }
 
+  .regiao-screen {
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    min-height: calc(100vh - 110px); padding: 24px; gap: 20px;
+  }
+  .regiao-screen h2 {
+    font-family: 'Science Gothic', sans-serif; font-size: 22px; font-weight: 800;
+    text-align: center; color: var(--text);
+  }
+  .regiao-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    width: 100%; max-width: 640px;
+  }
+  .regiao-card {
+    background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px;
+    padding: 20px 12px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+    cursor: pointer; transition: all 0.15s; box-shadow: var(--shadow);
+  }
+  .regiao-card:hover { transform: translateY(-2px); box-shadow: var(--shadow2); }
+  .regiao-card .icon { font-size: 28px; }
+  .regiao-card .nome {
+    font-family: 'Science Gothic', sans-serif; font-size: 13px; font-weight: 700; text-align: center;
+  }
+  .regiao-card .count { font-size: 11px; color: var(--muted); }
+
   .project-box {
     background: var(--surface);
     border-radius: 16px; border: 1.5px solid var(--border);
@@ -297,17 +321,23 @@
   <img src="LOGO_ALESI.webp" alt="Alesi" class="topbar-logo">
   <h1>⚡ <span>MEUS</span> PROJETOS</h1>
 </div>
-  <div class="topbar-actions">
+  <div class="topbar-actions" id="topbarActions">
+    <button class="btn-icon" id="btnVoltarRegiao" style="display:none" onclick="voltarRegioes()" title="Voltar">↩</button>
     <button class="btn-icon" id="sortBtn"    onclick="sortAlpha()"      title="A–Z">🔤</button>
     <button class="btn-icon" id="editToggle" onclick="toggleEditMode()" title="Editar">✏️</button>
     <button class="btn-icon" onclick="resetCache()" title="Limpar duplicados">🗑️</button>
   </div>
 </div>
 
-<div class="status-bar">
+<div class="status-bar" id="statusBar">
   <div class="status-dot loading" id="statusDot"></div>
   <span id="statusText">Carregando projetos...</span>
   <button class="btn-refresh" onclick="carregarProjetos()">↻ Atualizar</button>
+</div>
+
+<div class="regiao-screen" id="regiaoScreen">
+  <h2>Selecione a Região</h2>
+  <div class="regiao-grid" id="regiaoGrid"></div>
 </div>
 
 <div class="drag-hint">☰ Segure ⠿ e arraste para reordenar</div>
@@ -350,17 +380,22 @@ const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyDbp9wZBMpLkm3WuWG
 const ACCENTS = ['#3b7cf4','#8b5cf6','#059669','#ef4444','#f59e0b','#06b6d4','#ec4899','#10b981'];
 const EMOJIS  = ['📄','📁','🌐','📊','📝','📌','🔗','💼','📅','🖼️','📧','💬','🎯','📦','🔧','⚙️','📱','💻','🗂️','🏗️','📐','📋','🧾','💡','🔐','📤','📥','🎨','🎬','🎵','📸','🧩','🗺️','📞','🔍','✅'];
 const REGIAO_COLORS = {
-  'NORTE':     '#9D4EDD',
-  'SUL':       '#780000',
-  'LESTE':     '#669BBC',
-  'OESTE':     '#606C38',
+  'NORTE':     '#335C67',
+  'SUL':       '#9E2A2B',
+  'LESTE':     '#4A5D45',
+  'OESTE':     '#540B0E',
   'CENTRO':    '#E09F3E',
-  'GRANDE SP': '#E2725B'
+  'GRANDE SP': '#FFF3B0'
 };
 const REGIAO_TEXT_COLORS = {
-  'GRANDE SP': '#FFFFFF'
+  'GRANDE SP': '#1a1a2e'
+};
+const REGIOES_ICONES = {
+  'NORTE':'🧭','SUL':'🌅','LESTE':'☀️','OESTE':'🌇','CENTRO':'🏙️','GRANDE SP':'🗺️'
 };
 
+let allProjects   = [];
+let regiaoAtiva   = '';
 let projects       = [];
 let editMode       = false;
 let currentProjIdx = null;
@@ -388,7 +423,7 @@ function carregarProjetos() {
   window._painelCallback = function(dados) {
     clearTimeout(timer);
     try {
-      projects = dados.map((p, idx) => {
+      allProjects = dados.map((p, idx) => {
         const key    = slugify(p.nome);
         const extras = extraLinks[key] || [];
         // Marca atalhos da planilha com _fromSheet para não duplicar
@@ -403,18 +438,7 @@ function carregarProjetos() {
         };
       });
 
-      // Restaura ordem salva
-      const savedOrder = JSON.parse(localStorage.getItem('painelOrder') || '[]');
-      if (savedOrder.length > 0) {
-        projects.sort((a, b) => {
-          const ia = savedOrder.indexOf(a.key);
-          const ib = savedOrder.indexOf(b.key);
-          return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-        });
-      }
-
-      renderAll();
-      setStatus('ok', `${projects.length} projeto${projects.length !== 1 ? 's' : ''} carregado${projects.length !== 1 ? 's' : ''}`);
+      mostrarSelecaoRegiao();
     } catch(e) {
       setStatus('error', 'Erro ao processar dados');
       document.getElementById('projectGrid').innerHTML = '';
@@ -457,7 +481,63 @@ function mostrarSkeletons() {
 }
 
 function saveOrder() {
-  localStorage.setItem('painelOrder', JSON.stringify(projects.map(p => p.key)));
+  if (!regiaoAtiva) return;
+  localStorage.setItem('painelOrder_' + regiaoAtiva, JSON.stringify(projects.map(p => p.key)));
+}
+
+// ── SELEÇÃO DE REGIÃO ─────────────────────────────────────
+function mostrarSelecaoRegiao() {
+  regiaoAtiva = '';
+  projects = [];
+  document.getElementById('statusBar').style.display = 'none';
+  document.getElementById('topbarActions').style.display = 'none';
+  document.getElementById('btnVoltarRegiao').style.display = 'none';
+  document.getElementById('projectGrid').style.display = 'none';
+  document.getElementById('projectGrid').innerHTML = '';
+  document.getElementById('errorState').classList.remove('show');
+
+  const counts = {};
+  allProjects.forEach(p => {
+    const r = p.regiao || 'SEM REGIÃO';
+    counts[r] = (counts[r] || 0) + 1;
+  });
+  const regioes = Object.keys(counts).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+  document.getElementById('regiaoGrid').innerHTML = regioes.map(r => `
+    <div class="regiao-card" onclick="selecionarRegiao('${r.replace(/'/g,"\\'")}')">
+      <div class="icon">${REGIOES_ICONES[r] || '📍'}</div>
+      <div class="nome">${r}</div>
+      <div class="count">${counts[r]} projeto${counts[r] !== 1 ? 's' : ''}</div>
+    </div>`).join('');
+
+  document.getElementById('regiaoScreen').style.display = 'flex';
+}
+
+function selecionarRegiao(regiao) {
+  regiaoAtiva = regiao;
+  projects = allProjects.filter(p => (p.regiao || 'SEM REGIÃO') === regiao);
+
+  const savedOrder = JSON.parse(localStorage.getItem('painelOrder_' + regiao) || '[]');
+  if (savedOrder.length > 0) {
+    projects.sort((a, b) => {
+      const ia = savedOrder.indexOf(a.key);
+      const ib = savedOrder.indexOf(b.key);
+      return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+    });
+  }
+
+  document.getElementById('regiaoScreen').style.display = 'none';
+  document.getElementById('statusBar').style.display = '';
+  document.getElementById('topbarActions').style.display = '';
+  document.getElementById('btnVoltarRegiao').style.display = '';
+  document.getElementById('projectGrid').style.display = '';
+
+  renderAll();
+  setStatus('ok', `${projects.length} projeto${projects.length !== 1 ? 's' : ''} carregado${projects.length !== 1 ? 's' : ''}`);
+}
+
+function voltarRegioes() {
+  mostrarSelecaoRegiao();
 }
 
 function saveExtras() {
@@ -635,7 +715,10 @@ function deleteShortcut(e, projIdx, scIdx) {
 
 function deleteProject(projIdx) {
   if (!confirm('Remover este projeto do painel?\n(Não afeta a planilha)')) return;
-  projects.splice(projIdx, 1); saveOrder(); renderAll();
+  const removido = projects.splice(projIdx, 1)[0];
+  const gi = allProjects.findIndex(p => p.key === removido.key);
+  if (gi > -1) allProjects.splice(gi, 1);
+  saveOrder(); renderAll();
 }
 
 // ── TOAST ────────────────────────────────────────────────
@@ -650,7 +733,7 @@ function toast(msg) {
 function resetCache() {
   if (!confirm("Limpar duplicados?\nIsso remove atalhos adicionados manualmente (exceto os da planilha).")) return;
   localStorage.removeItem("painelExtras");
-  localStorage.removeItem("painelOrder");
+  Object.keys(localStorage).filter(k => k.startsWith('painelOrder')).forEach(k => localStorage.removeItem(k));
   extraLinks = {};
   toast("Cache limpo! Recarregando...");
   setTimeout(() => carregarProjetos(), 800);
